@@ -8,12 +8,14 @@ import { stylus } from 'stylus';
 // Wizard
 import { ZLevelWizard_Start, StylusWaiting_Start } from 'wizard';
 import { StatusBar_Init } from 'status'; 
+import { Stylus_Init } from 'stylus'; 
 
 let group, camera, scene, renderer, object;
 
 init();
 StatusBar_Init();
 StylusWaiting_Start();
+Stylus_Init();
 
 function init() {
 	scene = new THREE.Scene();
@@ -62,6 +64,39 @@ function init() {
 		object.scale.setScalar( 0.01 );
 		scene.add( object );
 		renderer.render(scene, camera);
+
+		stylus.connection.addEventListener('message', (m) => {
+			try {
+				const jsobj = JSON.parse(m.detail);
+				//const position = jsobj[0].p;
+				//object.position.x = position[0] * 5;
+				//object.position.z = position[2] * 5;
+
+				const pose = jsobj[0].pose;
+				const matrix = new THREE.Matrix4();
+				matrix.set(
+					pose[0][0], pose[0][1], pose[0][2], pose[0][3],
+					pose[1][0], pose[1][1], pose[1][2], pose[1][3],
+					pose[2][0], pose[2][1], pose[2][2], pose[2][3],
+					0, 0, 0, 1
+				);
+
+				// Decompose the matrix into position, quaternion (rotation), and scale
+				const position = new THREE.Vector3();
+				const quaternion = new THREE.Quaternion();
+				const scale = new THREE.Vector3();
+				matrix.decompose(position, quaternion, scale);
+
+				object.position.x = position.x * 5;
+				object.position.y = position.y * 5 + 8;
+				object.position.z = position.z * 5;
+				object.quaternion.copy(quaternion);
+
+				renderer.render(scene, camera);
+			} catch (e) {
+				console.error(e);
+			}
+		});
 	}
 
 	const manager = new THREE.LoadingManager( loadModel );
@@ -94,7 +129,7 @@ function init() {
 	scene.add( group );
 
 	// Some geometry to be replaced with stylus model
-	const geometry = new THREE.PlaneGeometry( 25, 25 );
+	const geometry = new THREE.PlaneGeometry( 50, 50 );
 	const material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
 	const plane = new THREE.Mesh( geometry, material );
 	plane.rotation.x = Math.PI / 2;

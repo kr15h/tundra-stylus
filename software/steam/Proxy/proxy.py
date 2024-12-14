@@ -67,11 +67,6 @@ def get_active_trackers(vr_system):
 					pos_y = new_pose[1][3] # Up, down
 					pos_z = new_pose[2][3] # Towards, away
 
-					# ToDo, let's calculate this from the 3x3 matrix
-					rot_x = math.atan2(new_pose[1][1], new_pose[2][1]) # pitch
-					rot_y = math.asin(-new_pose[0][1]) # yaw
-					rot_z = math.atan2(new_pose[0][2], new_pose[0][0]) # roll
-
 					# avoid gimbal lock
 					if (math.fabs(new_pose[0][1]) >= 1.0):
 						rot_x = 0.0 # can not distinguish pitch
@@ -89,8 +84,10 @@ def get_active_trackers(vr_system):
 					tracker_data.append({
 						"i": device_index,
 						"p": (pos_x, pos_y, pos_z),
-						"r": (rot_x, rot_y, rot_z),
-						"t": (tip_x, tip_y, tip_z) 
+						"t": (tip_x, tip_y, tip_z),
+						"pose": (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
+									(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
+									(new_pose[2][0], new_pose[2][1], new_pose[2][2], new_pose[2][3])) 
 					})
 	return tracker_data
 
