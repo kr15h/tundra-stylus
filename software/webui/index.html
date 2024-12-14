@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tundra Stylus Web UI</title>
+
+	<style type="text/css">
+		html, body {
+			margin: 0;
+			height: 100%;
+		}
+
+		body {
+			font-size: 14px;
+			font-family: 'Courier New', Courier, monospace;
+		}
+
+		.status-bar-outer {
+			position: absolute;
+			width: 100%;
+			background-color: white;
+		}
+
+		.status-bar-inner {
+			padding: 0.25rem 1rem;
+			line-height: 1.5rem;
+		}
+
+		.indicator-color {
+			font-size: 1.5rem;
+			vertical-align: top;
+		}
+
+		.color-red {
+			color: crimson;
+		}
+
+		.color-green {
+			color: lawngreen;
+		}
+
+		.widget {
+			display: inline-block;
+		}
+
+		.modal-outer {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			height: 100vh;
+		}
+
+		.modal-inner {
+			width: 400px;
+			padding: 1rem 2rem 2rem 2rem;
+			background-color: white;
+		}
+
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+
+	<!-- Below a few modals used to setup stylus so it maps to screen accordingly -->
+
+	<!-- We need a connection manager, can be a modal at first, but then a widget -->
+
+	<!-- BEGIN: Status bar with a few widgets -->
+	<div class="status-bar-outer">
+		<div class="status-bar-inner">
+			<div class="widget" id="widget_stylus_connection">
+				<p><span class="indicator-color color-red">●</span> Tundra Stylus <span class="indicator-words color-red">Disconnected</span></span></p>
+			</div>
+
+			<div class="widget separator">|</div>
+
+			<div class="widget" id="widget_scene_setup">
+				<p>Scene Setup <span class="indicator-words color-red">Not Done</span> <button>Start Wizard</button></p>
+			</div>
+		</div>
+	</div>
+	<!-- END: Status bar -->
+
+	<!-- BEGIN: Waiting for Stylus -->
+	<div class="modal-outer hidden" id="modal_stylus_waiting">
+		<div class="modal-inner">
+			<h2>Waiting for stylus...</h2>
+			<p>Make sure your lighthouse system is set up properly. Follow <a target="_blank" href="https://github.com/kr15h/tundra-stylus">the guide</a> in case you are not sure.</p>
+		</div>
+	</div>
+	<!-- END: Waiting for Stylus -->
+
+	<!-- BEGIN: Start Z Level Wizard -->
+	<div class="modal-outer hidden" id="modal_zlevel_start">
+		<div class="modal-inner">
+			<h2>Stylus Z Leveling</h2>
+			<p>We need to determine the zero level of your work surface. To do so, you will need to do the following.</p>
+			<ol>
+				<li>Touch the work surface with the tip of the stylus.</li>
+				<li>Press the trigger button (first button from the tip).</li>
+			</ol>
+			<p>Press Proceed to begin.</p>
+			<button class="btn_confirm">Proceed</button>
+			<button class="btn_cancel">Cancel</button>
+		</div>
+	</div>
+	<!-- END: Start Z Level Wizard -->
+
+	<!-- BEGIN: Z Level Process -->
+	<div class="modal-outer hidden" id="modal_zlevel_proceed">
+		<div class="modal-inner">
+			<h2>Waiting for trigger...</h2>
+			<ol>
+				<li>Touch the work surface with the tip of the stylus.</li>
+				<li>Press the trigger button (first button from the tip).</li>
+			</ol>
+			<button class="btn_cancel">Cancel</button>
+		</div>
+	</div>
+	<!-- END: Z Level Process -->
+
+	<script type="importmap">
+		{
+			"imports": {	
+				"three": "./libs/threejs/three.module.min.js",
+				"three/addons/": "./libs/threejs/addons/",
+				"stylus": "./js/stylus.js",
+				"wizard": "./js/wizard.js",
+				"wsman": "./js/wsman.js"
+			}
+		}
+	</script>
+
+	<script type="module" src="js/main.js"></script>
+	<script type="module" src="js/stylus.js"></script>
+	<script type="module" src="js/wizard.js"></script>
+	<script type="module" src="js/wsman.js"></script>
+</body>
+</html>
