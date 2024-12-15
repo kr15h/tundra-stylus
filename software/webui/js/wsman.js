@@ -1,12 +1,12 @@
 class WebSocketManager extends EventTarget {
-	constructor(url, protocols = null, options = {}) {
+	constructor(url) {
 		super();
+		
 		this.url = url;
-		this.protocols = protocols;
 		this.socket = null;
 		this.isConnected = false;
-		this.reconnectInterval = options.reconnectInterval || 3000; // Time in ms to wait before reconnecting
-		this.maxRetries = options.maxRetries || Infinity; // Maximum reconnect attempts
+		this.reconnectInterval = 3000;
+		this.maxRetries = Infinity; 
 		this.retryCount = 0;
 
 		this.connect();
@@ -19,7 +19,7 @@ class WebSocketManager extends EventTarget {
 			return;
 		}
 	
-		this.socket = new WebSocket(this.url, this.protocols);
+		this.socket = new WebSocket(this.url);
 	
 		this.socket.onopen = () => {
 			console.log('WebSocket connected.');

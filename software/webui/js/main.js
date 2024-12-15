@@ -7,6 +7,7 @@ import { stylus } from 'stylus';
 
 // Wizard
 import { ZLevelWizard_Start, StylusWaiting_Start } from 'wizard';
+import { StatusBar_Init } from 'status'; 
 
 let group, camera, scene, renderer, object;
 
@@ -99,7 +100,7 @@ function init() {
 
 	window.addEventListener( 'resize', onWindowResize );
 
-	//ZLevelWizard_Start();
+	StatusBar_Init();
 	StylusWaiting_Start();
 }
 
