@@ -13,15 +13,7 @@ export const stylus = {
 	setup: {
 		completed: false
 	},
-	tracker: {
-		position: { x:0, y:0, z:0 },
-		fullPose: [	[0,0,0,0], 
-					[0,0,0,0], 
-					[0,0,0,0]]
-	},
-	tip: {
-		position: { x:0, y:0, z:0 }
-	}
+	devices: new Map()
 };
 
 export function Stylus_Init() {

@@ -2,16 +2,10 @@
 SteamVR Proxy for Tundra Stylus
 
 Waits for connected trackers and forwards pose and button information.
-To be used in combination with websocketd. Has two types of messages.
+To be used in combination with websocketd. 
 
-1. Pose messages
-2. Button messages
-
-Pose message
-{ "type":"pose", "tid":<tracker_id>, "pose":<3x4_pose_array> }
-
-Button message
-{ "type":"button", "tid":<tracker_id>, "bid":"<trig|menu|grip|tpad>", "pressed":<true|false> }
+Message format
+{ "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
 
 """
 import openvr
@@ -37,18 +31,32 @@ def get_active_trackers(vr_system):
 		# Check if the device is tracked
 		if vr_system.isTrackedDeviceConnected(device_index):
 			device_class = vr_system.getTrackedDeviceClass(device_index)
-			if device_class == openvr.TrackedDeviceClass_GenericTracker:
+			if device_class == openvr.TrackedDeviceClass_GenericTracker or openvr.TrackedDeviceClass_Controller:
 				# Get device pose
 				# TrackingUniverseStanding: absolute coordinate system
 				# TrackingUniverseSeated:   relative coordinate system (can be reset using IVRSystem::ResetSeatedZeroPose)
-				pose = vr_system.getDeviceToAbsoluteTrackingPose(
-					openvr.TrackingUniverseStanding, 0, openvr.k_unMaxTrackedDeviceCount
-				)[device_index]
-				if pose.bPoseIsValid:
+
+				success, state, pose = vr_system.getControllerStateWithPose(
+					openvr.TrackingUniverseStanding, device_index
+				)
+
+				if success and state and pose.bPoseIsValid:
 					new_pose = pose.mDeviceToAbsoluteTracking
+					
+					if new_pose[0][0] == 1.0 and new_pose[1][1] == 1.0 and new_pose[2][2] == 1.0:
+						continue # there are cases when the pose is empty. null hmd?
+
+					buttons_pressed = state.ulButtonPressed
+					buttons = {
+						"trig": bool(buttons_pressed & (1 << 33)),
+						"grip": bool(buttons_pressed & (1 << 2)),
+						"tpad": bool(buttons_pressed & (1 << 32)),
+						"menu": bool(buttons_pressed & (1 << 1))
+					}
+					
 					tracker_data.append({
-						"type":"pose",
-						"tid": device_index,
+						"id": device_index,
+						"buttons": buttons,
 						"pose": (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
 									(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
 									(new_pose[2][0], new_pose[2][1], new_pose[2][2], new_pose[2][3])) 

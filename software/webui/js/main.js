@@ -67,15 +67,11 @@ function init() {
 
 		stylus.connection.addEventListener('message', (m) => {
 			try {
-				const arr = JSON.parse(m.detail);
+				const obj_arr = JSON.parse(m.detail);
 
-				// It could be that we have multiple styluses or trackers
-				for (const obj of arr) {
-					if (obj.type == "pose") {
-						handleStylusPose(obj);
-					} else if (obj.type == "button") {
-						handleStylusButton(obj);
-					}	
+				// We are getting an array of possible multiple styluses
+				for (const obj of obj_arr) {
+					handleStylusMessage(obj)
 				}
 			} catch (e) {
 				console.error(e);
@@ -132,8 +128,38 @@ function animate() {
 	renderer.render( scene, camera );
 }
 
-function handleStylusPose(obj) {
+function handleStylusMessage(obj) 
+{
+	// We can have multiple devices, thus we need to id them
+	const device_id = obj.id;
+
+	// Check if we have data for this device id already
+	if (stylus.devices.has(device_id)) 
+	{
+		// This means we can compare the button values and trigger events
+		if (stylus.devices.get(device_id).buttons.trig != obj.buttons.trig) 
+		{
+			// Do this only if incoming value is different from the one stored
+			if (obj.buttons.trig) {
+				console.log('Trig button pressed');
+			} else {
+				console.log('Trig button released');
+			}
+
+			stylus.devices.get(device_id).buttons.trig = obj.buttons.trig
+		} 
+	}
+	else 
+	{
+		// Else, we just save the button information
+		stylus.devices.set(device_id, {});
+		stylus.devices.get(device_id).buttons = obj.buttons;
+	}
+
+	// Save pose
 	const pose = obj.pose;
+	stylus.devices.get(device_id).pose = pose;
+
 	const matrix = new THREE.Matrix4();
 	matrix.set(
 		pose[0][0], pose[0][1], pose[0][2], pose[0][3],
@@ -154,10 +180,6 @@ function handleStylusPose(obj) {
 	object.quaternion.copy(quaternion);
 
 	renderer.render(scene, camera);
-}
-
-function handleStylusButton(obj) {
-	console.log(obj);
 }
 
 
