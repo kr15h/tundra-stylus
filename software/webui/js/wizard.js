@@ -56,8 +56,6 @@ function ZLevelWizard_Proceed() {
 }
 
 function hideElement( el ) {
-	console.log(el);
-
 	if ( !el.classList.contains('hidden') ) {
 		el.classList.add('hidden');
 	}

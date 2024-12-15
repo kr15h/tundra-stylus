@@ -12,6 +12,8 @@ import { StatusBar_Init } from 'status';
 let group, camera, scene, renderer, object;
 
 init();
+StatusBar_Init();
+StylusWaiting_Start();
 
 function init() {
 	scene = new THREE.Scene();
@@ -99,9 +101,6 @@ function init() {
 	group.add( plane );
 
 	window.addEventListener( 'resize', onWindowResize );
-
-	StatusBar_Init();
-	StylusWaiting_Start();
 }
 
 function onWindowResize() {
