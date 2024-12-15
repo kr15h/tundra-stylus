@@ -67,32 +67,16 @@ function init() {
 
 		stylus.connection.addEventListener('message', (m) => {
 			try {
-				const jsobj = JSON.parse(m.detail);
-				//const position = jsobj[0].p;
-				//object.position.x = position[0] * 5;
-				//object.position.z = position[2] * 5;
+				const arr = JSON.parse(m.detail);
 
-				const pose = jsobj[0].pose;
-				const matrix = new THREE.Matrix4();
-				matrix.set(
-					pose[0][0], pose[0][1], pose[0][2], pose[0][3],
-					pose[1][0], pose[1][1], pose[1][2], pose[1][3],
-					pose[2][0], pose[2][1], pose[2][2], pose[2][3],
-					0, 0, 0, 1
-				);
-
-				// Decompose the matrix into position, quaternion (rotation), and scale
-				const position = new THREE.Vector3();
-				const quaternion = new THREE.Quaternion();
-				const scale = new THREE.Vector3();
-				matrix.decompose(position, quaternion, scale);
-
-				object.position.x = position.x * 5;
-				object.position.y = position.y * 5 + 8;
-				object.position.z = position.z * 5;
-				object.quaternion.copy(quaternion);
-
-				renderer.render(scene, camera);
+				// It could be that we have multiple styluses or trackers
+				for (const obj of arr) {
+					if (obj.type == "pose") {
+						handleStylusPose(obj);
+					} else if (obj.type == "button") {
+						handleStylusButton(obj);
+					}	
+				}
 			} catch (e) {
 				console.error(e);
 			}
@@ -146,6 +130,34 @@ function onWindowResize() {
 
 function animate() {
 	renderer.render( scene, camera );
+}
+
+function handleStylusPose(obj) {
+	const pose = obj.pose;
+	const matrix = new THREE.Matrix4();
+	matrix.set(
+		pose[0][0], pose[0][1], pose[0][2], pose[0][3],
+		pose[1][0], pose[1][1], pose[1][2], pose[1][3],
+		pose[2][0], pose[2][1], pose[2][2], pose[2][3],
+		0, 0, 0, 1
+	);
+
+	// Decompose the matrix into position, quaternion (rotation), and scale
+	const position = new THREE.Vector3();
+	const quaternion = new THREE.Quaternion();
+	const scale = new THREE.Vector3();
+	matrix.decompose(position, quaternion, scale);
+
+	object.position.x = position.x * 5;
+	object.position.y = position.y * 5 + 8;
+	object.position.z = position.z * 5;
+	object.quaternion.copy(quaternion);
+
+	renderer.render(scene, camera);
+}
+
+function handleStylusButton(obj) {
+	console.log(obj);
 }
 
 
