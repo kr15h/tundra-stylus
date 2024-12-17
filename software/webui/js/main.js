@@ -159,10 +159,12 @@ function init() {
 	plane.rotation.x = Math.PI / 2;
 	group.add( plane );
 
-	const size = 2;
+	// Display grid so we can compare real units with virtual visually
+	const size = 2; // this is in meters, remember
 	const divisions = 20;
-
-	const gridHelper = new THREE.GridHelper( size, divisions );
+	const colorCenterLine = 0x777777;
+	const colorGrid = 0xaaaaaa;
+	const gridHelper = new THREE.GridHelper( size, divisions, colorCenterLine, colorGrid );
 	group.add( gridHelper );
 
 	window.addEventListener( 'resize', onWindowResize );

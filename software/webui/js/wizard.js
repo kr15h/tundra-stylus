@@ -4,8 +4,6 @@ export function StylusWaiting_Start() {
 	const elModal = document.getElementById('modal_stylus_waiting');
 	elModal.classList.remove('hidden');
 
-	// TODO: hook into our global websocket connection here.
-	//       websocket management would be another module then.
 	if (elModal.hasEventListeners) {
 		return;
 	}
