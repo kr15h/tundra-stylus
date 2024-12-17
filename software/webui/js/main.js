@@ -10,11 +10,30 @@ import { StylusManager } from './stylus.js';
 import { StylusWaiting_Start } from 'wizard';
 import { StatusBar_Init } from 'status';
 
-let group, camera, scene, renderer, object, tip;
+let group, camera, scene, renderer;
 
+// TODO: This should be part of something like Scene class or something
+let stylusModel = null; // Stylus model template to be cloned for each stylus instance 
+let stylusTipShadow = null; // Stylus tip shadow instance to be cloned
+const stylusModelMap = new Map(); // Maps stylus IDs to models in scene
+
+// Manages networked stylus instances. 
+// Not sure if one should do object loading there.
 export const stylusManager = new StylusManager();
+
 const STYLUS_SCALE = 0.001; // This could be set up in a settings/properties panel
-const offset = {x:0, y:0, z:0};
+const STYLUS_MODEL_PATH = 'assets/models/tundrastylus.obj'; 
+const STYLUS_COLORS = {
+	'Buttons Final': 0x000000,
+	'Base Final': 0xffffff,
+	'Cover Final': 0xbababa
+};
+
+// TODO:
+// 1. Load model
+// 2. Set up stylus manager
+// 3. Add listeners
+// 4. Fire up websocket connection
 
 init();
 StatusBar_Init();
@@ -53,111 +72,74 @@ function init() {
 	controls.maxDistance = 100;
 	controls.maxPolarAngle = Math.PI / 2;
 
-	// Load stylus model
-	function loadModel() {
-		object.traverse( function ( child ) {
-			if ( child.isMesh ) {
-				for (const key in stylus.model.colors) {
-					if ( stylus.model.colors.hasOwnProperty(key) ) {
-						if ( child.name == key ) {
-							child.material = new THREE.MeshStandardMaterial({ color: stylus.model.colors[key] });
+	// Stylus tip shadow template
+	const geometry = new THREE.CircleGeometry( 0.05, 32 ); 
+	const material = new THREE.MeshBasicMaterial({ 
+		color: 0x000000, 
+		transparent: true, 
+		opacity: 0.5, 
+		side: THREE.DoubleSide
+	}); 
+	stylusTipShadow = new THREE.Mesh( geometry, material );
+	stylusTipShadow.position.y = 0.01;
+	stylusTipShadow.rotation.x = Math.PI / 2; 
+	
+	// Stylus model template loading
+	const loader = new OBJLoader();
+	loader.load( 
+		STYLUS_MODEL_PATH, 
+		(obj) => {
+			stylusModel = obj;
+			stylusModel.scale.setScalar( STYLUS_SCALE );
+
+			// Assign colors
+			stylusModel.traverse( ( child ) => {
+				if ( child.isMesh ) {
+					for (const key in STYLUS_COLORS) {
+						if ( STYLUS_COLORS.hasOwnProperty(key) ) {
+							if ( child.name == key ) {
+								child.material = new THREE.MeshStandardMaterial({ 
+									color: STYLUS_COLORS[key] 
+								});
+							}
 						}
 					}
 				}
-			}
-		} );
+			});
 
-		object.position.y = 1.5;
-		object.scale.setScalar( STYLUS_SCALE );
-		scene.add( object );
-		const axesHelper = new THREE.AxesHelper(5); // Size of the axes, this is 100x the size, given object scale
-		object.add(axesHelper);
+			// Add helper axes
+			const axesHelper = new THREE.AxesHelper(5); 
+			stylusModel.add(axesHelper);
 
-		// Add stylus tip shadow
-		const geometry = new THREE.CircleGeometry( 0.05, 32 ); 
-		const material = new THREE.MeshBasicMaterial({ 
-			color: 0x000000, 
-			transparent: true, 
-			opacity: 0.5, 
-			side: THREE.DoubleSide
-		}); 
-		tip = new THREE.Mesh( geometry, material );
-		tip.position.y = 0.01;
-		tip.rotation.x = Math.PI / 2; 
-		scene.add( tip );
-
-		renderer.render(scene, camera);
-
-		stylusManager.on('pose', data => {
-			object.position.x = data.position.x - stylusManager.origin.position.x;
-			object.position.y = data.position.y - stylusManager.origin.position.y;
-			object.position.z = data.position.z - stylusManager.origin.position.z;
-			object.quaternion.copy(data.quaternion);
-			tip.position.x = data.tip.position.x - stylusManager.origin.position.x;
-			tip.position.z = data.tip.position.z - stylusManager.origin.position.z;
-			renderer.render(scene, camera);
-		});
-		
-		stylusManager.on('click', data => {
-			console.log('Button clicked:', data);
-			if (data.buttonName == "menu") {
-				stylusManager.setTipAsOrigin(stylusManager.getStylus(data.id));
-			}
-		});
-		
-		stylusManager.on('pressed', data => {
-			console.log('Button pressed:', data)
-		});
-		
-		stylusManager.on('released', data => {
-			console.log('Button released:', data)
-		});
-
-		stylus.connection.addEventListener('message', (m) => {
-			try {
-				const obj_arr = JSON.parse(m.detail);
-				// We are getting an array of possible multiple styluses
-				for (const m of obj_arr) {
-					stylusManager.handleWebSocketMessage(m);
+			// Check if we have any established stylus connections 
+			// and clone models based on how many connected styluses we have
+			if ( stylusManager.styluses.size ) {
+				for ( const id of stylusManager.styluses.keys() ) {
+					addStylusClone(id);
 				}
-			} catch (e) {
-				console.error(e);
+			}			
+		}, 
+		(xhr) => {
+			if ( xhr.lengthComputable ) {
+				const percentComplete = xhr.loaded / xhr.total * 100;
+				console.log( 'model ' + percentComplete.toFixed( 2 ) + '% downloaded' );
 			}
-		});
-	}
+		}, 
+		(err) => {
+			console.log( 'Error loading model: ' + err );
+		} 
+	);
 
-	const manager = new THREE.LoadingManager( loadModel );
-
-	function onSuccess( obj ) {
-		object = obj;
-	}
-
-	function onProgress( xhr ) {
-		if ( xhr.lengthComputable ) {
-			const percentComplete = xhr.loaded / xhr.total * 100;
-			console.log( 'model ' + percentComplete.toFixed( 2 ) + '% downloaded' );
-		}
-	}
-
-	function onError( err ) {
-		console.log( 'Error loading model: ' + err );
-	}
-	
-	const loader = new OBJLoader( manager );
-	loader.load( stylus.model.path, onSuccess, onProgress, onError );
-
-	// Axes helper
-	scene.add( new THREE.AxesHelper( 12 ) );
-
-	// Make use of groups
+	// Work area group
 	group = new THREE.Group();
 	scene.add( group );
 
-	const geometry = new THREE.CircleGeometry( 2, 32 );
-	const material = new THREE.MeshBasicMaterial( {color: 0xdfdfdf, side: THREE.DoubleSide} );
-	const plane = new THREE.Mesh( geometry, material );
-	plane.rotation.x = Math.PI / 2;
-	group.add( plane );
+	// Add work area canvas
+	const canvasGeometry = new THREE.CircleGeometry( 2, 32 );
+	const canvasMaterial = new THREE.MeshBasicMaterial( { color: 0xdfdfdf, side: THREE.DoubleSide } );
+	const canvasMesh = new THREE.Mesh( canvasGeometry, canvasMaterial );
+	canvasMesh.rotation.x = Math.PI / 2;
+	group.add( canvasMesh );
 
 	// Display grid so we can compare real units with virtual visually
 	const size = 2; // this is in meters, remember
@@ -167,7 +149,96 @@ function init() {
 	const gridHelper = new THREE.GridHelper( size, divisions, colorCenterLine, colorGrid );
 	group.add( gridHelper );
 
+	// Axes helper
+	const sceneAxisHelper = new THREE.AxesHelper( 12 );
+	group.add( sceneAxisHelper );
+
+	renderer.render(scene, camera);
+
+	// Handle stylus manager events
+	stylusManager.on( 'new_stylus', data => {
+		addStylusClone( data.id );
+	}); 
+
+	stylusManager.on('pose', data => {
+		const id = data.id;
+
+		if ( !stylusModelMap.has( id ) ) {
+			console.error( '3D model for stylus has not been added yet: ' + data.id );
+			return;
+		}
+
+		const stylus = stylusModelMap.get( id ).stylus;
+		const shadow = stylusModelMap.get( id ).shadow;
+
+		stylus.position.subVectors(data.position, stylusManager.origin.position);
+		stylus.quaternion.copy(data.quaternion);
+
+		shadow.position.x = data.tip.position.x - stylusManager.origin.position.x;
+		shadow.position.z = data.tip.position.z - stylusManager.origin.position.z;
+		
+		renderer.render(scene, camera);
+	});
+		
+	stylusManager.on('click', data => {
+		console.log('Button clicked:', data);
+		if (data.buttonName == "menu") {
+			stylusManager.setTipAsOrigin(stylusManager.getStylus(data.id));
+		}
+	});
+		
+	stylusManager.on('pressed', data => {
+		console.log('Button pressed:', data)
+	});
+		
+	stylusManager.on('released', data => {
+		console.log('Button released:', data)
+	});
+
+	// I wonder if this should be part of stylusManager itself?
+	// When initializing: new StylusManager( ws_connection ); 
+	// How about that?
+	stylus.connection.addEventListener('message', (m) => 
+	{
+		try {
+			const obj_arr = JSON.parse(m.detail);
+			// We are getting an array of possible multiple styluses
+			for (const m of obj_arr) {
+				stylusManager.handleWebSocketMessage(m);
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
+
 	window.addEventListener( 'resize', onWindowResize );
+}
+
+function addStylusClone( id ) 
+{
+	if ( stylusModel == null ) {
+		console.error( 'Stylus model not loaded' );
+		return;
+	}
+
+	if ( stylusModelMap.has( id ) ) {
+		console.error( 'Stylus with ID already added: ' + id );
+		return;
+	}
+
+	const stylusClone = stylusModel.clone();
+	scene.add( stylusClone );
+
+	const stylusTipShadowClone = stylusTipShadow.clone();
+	scene.add( stylusTipShadowClone );
+
+	const stylusCombo = {
+		stylus: stylusClone,
+		shadow: stylusTipShadowClone
+	};
+	stylusModelMap.set( id, stylusCombo );
+
+	renderer.render(scene, camera);
 }
 
 function onWindowResize() {

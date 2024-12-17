@@ -5,15 +5,8 @@ import * as THREE from 'three';
 const STYLUS_TIP_DISTANCE = 0.18889; // in meters
 const STYLUS_TIP_OFFSET = 0.13356; // axial, in meters
 
+// TODO: this should be part of the stylus manager
 export const stylus = {
-	model: {
-			path: 'assets/models/tundrastylus.obj',
-			colors: {
-					'Buttons Final': 0x000000,
-					'Base Final': 0xffffff,
-					'Cover Final': 0xbababa
-			}
-	},
 	connection: new WebSocketManager('ws://localhost:8080/'),
 	setup: {
 		completed: false
@@ -112,6 +105,9 @@ export class StylusManager {
 
 		if (!this.styluses.has(id)) {
 			this.styluses.set(id, new Stylus(id));
+
+			// We want to notify the rest of the app that a new stylus has been added
+			this.emit('new_stylus', { id });
 
 			// If this is the first stylus to be added, set origin based on it
 			if (this.styluses.size == 1) firstStylus = true;
