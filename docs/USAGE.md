@@ -1,21 +1,9 @@
 # Usage
 
-## SteamVR
+## Base Stations
 
-Launch the proxy script using websocketd. You will need to [install websocketd](http://websocketd.com/) first.
-
-```
-websocketd --address=localhost --port=8080 python proxy.py
-```
-
-This will launch a websocket server at `ws://localhost:8080/`.
+Tundra Stylus has been tested with Vive Base Station 2.0. One is enough, but if you want to use two, make sure you change the channel for one of them as in order to take advantage of multi-base-station tracking, the base stations should be on different channels. You can do this by using a pin similar to one used to remove SIM from iPhone. There is a little pin-hole on the back of the Vive Base Station, insert the pin there and press until you feel/hear a click. The base station should show up with a different channel in SteamVR now.
 
 ## Web UI
 
-You will need to launch a webserver locally. For instance, using python.
-
-```
-python -m http.server --bind localhost 8000
-```
-
-This will launch a webserver at `http://localhost:8000`.
+## Proxies

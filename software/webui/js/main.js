@@ -4,18 +4,21 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 // Stylus properties
 import { stylus } from 'stylus';
+import { StylusManager } from './stylus.js';
 
 // Wizard
 import { ZLevelWizard_Start, StylusWaiting_Start } from 'wizard';
-import { StatusBar_Init } from 'status'; 
-import { Stylus_Init } from 'stylus'; 
+import { StatusBar_Init } from 'status';
 
-let group, camera, scene, renderer, object;
+let group, camera, scene, renderer, object, tip;
+
+const stylusManager = new StylusManager();
+const STYLUS_SCALE = 0.01;
+const offset = {x:0, y:0, z:0};
 
 init();
 StatusBar_Init();
 StylusWaiting_Start();
-Stylus_Init();
 
 function init() {
 	scene = new THREE.Scene();
@@ -61,17 +64,71 @@ function init() {
 		} );
 
 		object.position.y = 1.5;
-		object.scale.setScalar( 0.01 );
+		object.scale.setScalar( STYLUS_SCALE );
 		scene.add( object );
+
+		// See loaded object size
+		const boundingBox = new THREE.Box3().setFromObject(object);
+		const size = new THREE.Vector3();
+		boundingBox.getSize(size);
+		console.log('Object size:', size);;
+
+		const axesHelper = new THREE.AxesHelper(200); // Size of the axes, this is 100x the size, given object scale
+		object.add(axesHelper);
+
+		// Add stylus tip shadow
+		const geometry = new THREE.CircleGeometry( 0.5, 32 ); 
+		const material = new THREE.MeshBasicMaterial({ 
+			color: 0x000000, 
+			transparent: true, 
+			opacity: 0.5, 
+			side: THREE.DoubleSide
+		}); 
+		tip = new THREE.Mesh( geometry, material );
+		tip.position.y = 0.01;
+		tip.rotation.x = Math.PI / 2; 
+		scene.add( tip );
+
+		// Add shadow axes helper
+		const tipAxesHelper = new THREE.AxesHelper(2);
+		tip.add(tipAxesHelper);
+
 		renderer.render(scene, camera);
+
+		stylusManager.on('pose', data => {
+			object.position.x = data.position.x * 10 - offset.x;
+			object.position.y = data.position.y * 10 - offset.y;
+			object.position.z = data.position.z * 10 - offset.z;
+			object.quaternion.copy(data.quaternion);
+			tip.position.x = data.tip.position.x * 10 - offset.x;
+			tip.position.z = data.tip.position.z * 10 - offset.z;
+			renderer.render(scene, camera);
+		});
+		
+		stylusManager.on('click', data => {
+			console.log('Button clicked:', data);
+			if (data.buttonName == "menu") {
+				offset.y = data.tip.position.y * 10;
+				offset.x = data.tip.position.x * 10;
+				offset.z = data.tip.position.z * 10;
+			}
+			
+		});
+		
+		stylusManager.on('pressed', data => {
+			console.log('Button pressed:', data)
+		});
+		
+		stylusManager.on('released', data => {
+			console.log('Button released:', data)
+		});
 
 		stylus.connection.addEventListener('message', (m) => {
 			try {
 				const obj_arr = JSON.parse(m.detail);
-
 				// We are getting an array of possible multiple styluses
-				for (const obj of obj_arr) {
-					handleStylusMessage(obj)
+				for (const m of obj_arr) {
+					stylusManager.handleWebSocketMessage(m);
 				}
 			} catch (e) {
 				console.error(e);
@@ -127,59 +184,3 @@ function onWindowResize() {
 function animate() {
 	renderer.render( scene, camera );
 }
-
-function handleStylusMessage(obj) 
-{
-	// We can have multiple devices, thus we need to id them
-	const device_id = obj.id;
-
-	// Check if we have data for this device id already
-	if (stylus.devices.has(device_id)) 
-	{
-		// This means we can compare the button values and trigger events
-		if (stylus.devices.get(device_id).buttons.trig != obj.buttons.trig) 
-		{
-			// Do this only if incoming value is different from the one stored
-			if (obj.buttons.trig) {
-				console.log('Trig button pressed');
-			} else {
-				console.log('Trig button released');
-			}
-
-			stylus.devices.get(device_id).buttons.trig = obj.buttons.trig
-		} 
-	}
-	else 
-	{
-		// Else, we just save the button information
-		stylus.devices.set(device_id, {});
-		stylus.devices.get(device_id).buttons = obj.buttons;
-	}
-
-	// Save pose
-	const pose = obj.pose;
-	stylus.devices.get(device_id).pose = pose;
-
-	const matrix = new THREE.Matrix4();
-	matrix.set(
-		pose[0][0], pose[0][1], pose[0][2], pose[0][3],
-		pose[1][0], pose[1][1], pose[1][2], pose[1][3],
-		pose[2][0], pose[2][1], pose[2][2], pose[2][3],
-		0, 0, 0, 1
-	);
-
-	// Decompose the matrix into position, quaternion (rotation), and scale
-	const position = new THREE.Vector3();
-	const quaternion = new THREE.Quaternion();
-	const scale = new THREE.Vector3();
-	matrix.decompose(position, quaternion, scale);
-
-	object.position.x = position.x * 5;
-	object.position.y = position.y * 5 + 8;
-	object.position.z = position.z * 5;
-	object.quaternion.copy(quaternion);
-
-	renderer.render(scene, camera);
-}
-
-

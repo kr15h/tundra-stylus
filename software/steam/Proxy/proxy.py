@@ -12,7 +12,6 @@ import openvr
 import time
 import json
 import math
-import numpy as np
 from sys import stdout
 
 # 30 or 60 frames per second is probably what you want, 120 in some cases
