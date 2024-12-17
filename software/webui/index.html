@@ -80,7 +80,7 @@
 			<div class="widget separator">|</div>
 
 			<div class="widget" id="widget_scene_setup">
-				<p>Scene Setup <span class="indicator-text color-red">Not Done</span> <button>Start Wizard</button></p>
+				<p><button class="button-set-origin">Set Origin</button></p>
 			</div>
 		</div>
 	</div>
@@ -95,34 +95,20 @@
 	</div>
 	<!-- END: Waiting for Stylus -->
 
-	<!-- BEGIN: Start Z Level Wizard -->
-	<div class="modal-outer hidden" id="modal_zlevel_start">
+	<!-- BEGIN: Set Origin Wizard -->
+	<div class="modal-outer hidden" id="modal_set_origin_help">
 		<div class="modal-inner">
-			<h2>Stylus Z Leveling</h2>
-			<p>We need to determine the zero level of your work surface. To do so, you will need to do the following.</p>
+			<h2>How to Set Stylus Origin</h2>
+			<p>To set the origin of your stylus, follow the steps below.</p>
 			<ol>
-				<li>Touch the work surface with the tip of the stylus.</li>
-				<li>Press the trigger button (first button from the tip).</li>
+				<li>Place the tip of the stylus on the center of your work area.</li>
+				<li>Press the Menu button (button closest to the tracker).</li>
 			</ol>
-			<p>Press Proceed to begin.</p>
-			<button class="btn_confirm">Proceed</button>
-			<button class="btn_cancel">Cancel</button>
+			<p>Hint: you can do it with this modal closed.</p>
+			<button class="btn-ok">Got it!</button>
 		</div>
 	</div>
-	<!-- END: Start Z Level Wizard -->
-
-	<!-- BEGIN: Z Level Process -->
-	<div class="modal-outer hidden" id="modal_zlevel_proceed">
-		<div class="modal-inner">
-			<h2>Waiting for trigger...</h2>
-			<ol>
-				<li>Touch the work surface with the tip of the stylus.</li>
-				<li>Press the trigger button (first button from the tip).</li>
-			</ol>
-			<button class="btn_cancel">Cancel</button>
-		</div>
-	</div>
-	<!-- END: Z Level Process -->
+	<!-- END: Set Origin Wizard -->
 
 	<script type="importmap">
 		{

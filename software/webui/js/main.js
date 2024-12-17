@@ -7,12 +7,12 @@ import { stylus } from 'stylus';
 import { StylusManager } from './stylus.js';
 
 // Wizard
-import { ZLevelWizard_Start, StylusWaiting_Start } from 'wizard';
+import { StylusWaiting_Start } from 'wizard';
 import { StatusBar_Init } from 'status';
 
 let group, camera, scene, renderer, object, tip;
 
-const stylusManager = new StylusManager();
+export const stylusManager = new StylusManager();
 const STYLUS_SCALE = 0.001; // This could be set up in a settings/properties panel
 const offset = {x:0, y:0, z:0};
 
