@@ -13,7 +13,7 @@ import { StatusBar_Init } from 'status';
 let group, camera, scene, renderer, object, tip;
 
 const stylusManager = new StylusManager();
-const STYLUS_SCALE = 0.01;
+const STYLUS_SCALE = 0.001; // This could be set up in a settings/properties panel
 const offset = {x:0, y:0, z:0};
 
 init();
@@ -31,8 +31,12 @@ function init() {
 	document.body.appendChild( renderer.domElement );
 
 	// Camera setup
-	camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
-	camera.position.set( 15, 20, 30 );
+	camera = new THREE.PerspectiveCamera( 
+		50, // Narrow fov for better view 
+		window.innerWidth / window.innerHeight, 
+		0.1, // Near clipping, in meters 
+		1000 ); // Far clipping plane
+	camera.position.set( 1, 1, 1 ); // A bit closer to the origin at first
 	scene.add(camera);
 
 	// We need some light
@@ -45,7 +49,7 @@ function init() {
 
 	// Controls
 	const controls = new OrbitControls( camera, renderer.domElement );
-	controls.minDistance = 10;
+	controls.minDistance = 1;
 	controls.maxDistance = 100;
 	controls.maxPolarAngle = Math.PI / 2;
 
@@ -66,18 +70,11 @@ function init() {
 		object.position.y = 1.5;
 		object.scale.setScalar( STYLUS_SCALE );
 		scene.add( object );
-
-		// See loaded object size
-		const boundingBox = new THREE.Box3().setFromObject(object);
-		const size = new THREE.Vector3();
-		boundingBox.getSize(size);
-		console.log('Object size:', size);;
-
-		const axesHelper = new THREE.AxesHelper(200); // Size of the axes, this is 100x the size, given object scale
+		const axesHelper = new THREE.AxesHelper(5); // Size of the axes, this is 100x the size, given object scale
 		object.add(axesHelper);
 
 		// Add stylus tip shadow
-		const geometry = new THREE.CircleGeometry( 0.5, 32 ); 
+		const geometry = new THREE.CircleGeometry( 0.05, 32 ); 
 		const material = new THREE.MeshBasicMaterial({ 
 			color: 0x000000, 
 			transparent: true, 
@@ -89,30 +86,23 @@ function init() {
 		tip.rotation.x = Math.PI / 2; 
 		scene.add( tip );
 
-		// Add shadow axes helper
-		const tipAxesHelper = new THREE.AxesHelper(2);
-		tip.add(tipAxesHelper);
-
 		renderer.render(scene, camera);
 
 		stylusManager.on('pose', data => {
-			object.position.x = data.position.x * 10 - offset.x;
-			object.position.y = data.position.y * 10 - offset.y;
-			object.position.z = data.position.z * 10 - offset.z;
+			object.position.x = data.position.x - stylusManager.origin.position.x;
+			object.position.y = data.position.y - stylusManager.origin.position.y;
+			object.position.z = data.position.z - stylusManager.origin.position.z;
 			object.quaternion.copy(data.quaternion);
-			tip.position.x = data.tip.position.x * 10 - offset.x;
-			tip.position.z = data.tip.position.z * 10 - offset.z;
+			tip.position.x = data.tip.position.x - stylusManager.origin.position.x;
+			tip.position.z = data.tip.position.z - stylusManager.origin.position.z;
 			renderer.render(scene, camera);
 		});
 		
 		stylusManager.on('click', data => {
 			console.log('Button clicked:', data);
 			if (data.buttonName == "menu") {
-				offset.y = data.tip.position.y * 10;
-				offset.x = data.tip.position.x * 10;
-				offset.z = data.tip.position.z * 10;
+				stylusManager.setTipAsOrigin(stylusManager.getStylus(data.id));
 			}
-			
 		});
 		
 		stylusManager.on('pressed', data => {
@@ -156,21 +146,24 @@ function init() {
 	const loader = new OBJLoader( manager );
 	loader.load( stylus.model.path, onSuccess, onProgress, onError );
 
-	// Some light: later maybe
-
 	// Axes helper
-	scene.add( new THREE.AxesHelper( 20 ) );
+	scene.add( new THREE.AxesHelper( 12 ) );
 
 	// Make use of groups
 	group = new THREE.Group();
 	scene.add( group );
 
-	// Some geometry to be replaced with stylus model
-	const geometry = new THREE.PlaneGeometry( 50, 50 );
-	const material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+	const geometry = new THREE.CircleGeometry( 2, 32 );
+	const material = new THREE.MeshBasicMaterial( {color: 0xdfdfdf, side: THREE.DoubleSide} );
 	const plane = new THREE.Mesh( geometry, material );
 	plane.rotation.x = Math.PI / 2;
 	group.add( plane );
+
+	const size = 2;
+	const divisions = 20;
+
+	const gridHelper = new THREE.GridHelper( size, divisions );
+	group.add( gridHelper );
 
 	window.addEventListener( 'resize', onWindowResize );
 }

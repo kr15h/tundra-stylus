@@ -100,20 +100,34 @@ export class StylusManager {
 	constructor() {
 		this.styluses = new Map();
 		this.listeners = {};
+		this.origin = {
+			position: new THREE.Vector3()
+		}
 	}
 
 	handleWebSocketMessage(message) {
 		// { "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
 		const { id, buttons, pose } = message;
-		
+		let firstStylus = false;
+
 		if (!this.styluses.has(id)) {
 			this.styluses.set(id, new Stylus(id));
+
+			// If this is the first stylus to be added, set origin based on it
+			if (this.styluses.size == 1) firstStylus = true;
 		}
 		
 		const stylus = this.styluses.get(id);
 		
 		if (pose) {
 			stylus.updatePose(pose);
+
+			// If this is first stylus just added, 
+			// set the origin based on where its tip is
+			if (firstStylus) {
+				this.setTipAsOrigin(stylus);
+			}
+
 			this.emit('pose', { 
 				id, 
 				pose, 
@@ -135,6 +149,16 @@ export class StylusManager {
 				}
 			}
 		}
+	}
+
+	setTipAsOrigin(stylus) {
+		this.origin.position.copy(stylus.tip.position);
+	}
+
+	getStylus(id) {
+		if (!this.styluses.has(id)) 
+			console.error('No stylus with id found:', id);
+		return this.styluses.get(id);
 	}
 
 	emit(event, data) {
