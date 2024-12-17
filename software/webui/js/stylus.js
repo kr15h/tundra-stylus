@@ -5,16 +5,6 @@ import * as THREE from 'three';
 const STYLUS_TIP_DISTANCE = 0.18889; // in meters
 const STYLUS_TIP_OFFSET = 0.13356; // axial, in meters
 
-// TODO: this should be part of the stylus manager
-export const stylus = {
-	connection: new WebSocketManager('ws://localhost:8080/'),
-	setup: {
-		completed: false
-	},
-	devices: new Map()
-};
-
-// stylus.js
 export class Stylus {
 	constructor(id) {
 		this.id = id;
@@ -95,10 +85,38 @@ export class StylusManager {
 		this.listeners = {};
 		this.origin = {
 			position: new THREE.Vector3()
-		}
+		};
+		this.url = 'ws://localhost:8080/';
+		this.connection = null;
+		this.devices = new Map();
+		this.modalElement = document.getElementById('modal_stylus_waiting');
 	}
 
-	handleWebSocketMessage(message) {
+	connect() {
+		this.connection = new WebSocketManager( this.url );		
+		this.modalElement.classList.remove( 'hidden' );
+	
+		this.connection.addEventListener('connect', ( e ) => {
+			this.modalElement.classList.add( 'hidden' );
+		});
+
+		this.connection.addEventListener('message', ( m ) => {
+			try {
+				const obj_arr = JSON.parse(m.detail);
+
+				// We are getting an array of possible multiple styluses
+				for (const m of obj_arr) {
+					this.handleWebSocketMessage(m);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		});
+
+		this.connection.connect();
+	}
+
+	handleWebSocketMessage( message ) {
 		// { "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
 		const { id, buttons, pose } = message;
 		let firstStylus = false;

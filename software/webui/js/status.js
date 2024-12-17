@@ -1,4 +1,4 @@
-import { stylus } from 'stylus';
+import { state } from 'state';
 import { SetOriginHelp_Show } from 'wizard'; 
 
 export function StatusBar_Init() {
@@ -11,7 +11,7 @@ export function StatusBar_Init() {
 	}
 	
 	// We need to hide this only when connection is established
-	stylus.connection.addEventListener('connect', ( e ) => 
+	state.stylusManager.connection.addEventListener('connect', ( e ) => 
 	{
 		// Set up color indicator to green as soon as connection is established
 		const elIndicatorColor = elWidget.getElementsByClassName('indicator-color')[0];
@@ -33,7 +33,7 @@ export function StatusBar_Init() {
 			elIndicatorText.classList.add('color-green');
 	});
 
-	stylus.connection.addEventListener('close', ( e ) => 
+	state.stylusManager.connection.addEventListener('close', ( e ) => 
 	{
 		// Set color indicator to red as soon as connection is closed
 		const elIndicatorColor = elWidget.getElementsByClassName('indicator-color')[0];

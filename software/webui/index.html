@@ -16,6 +16,10 @@
 			font-family: 'Courier New', Courier, monospace;
 		}
 
+		progress {
+			width: 100%;
+		}
+
 		.status-bar-outer {
 			position: absolute;
 			width: 100%;
@@ -86,6 +90,15 @@
 	</div>
 	<!-- END: Status bar -->
 
+	<!-- BEGIN: Loading stylus model -->
+	<div class="modal-outer" id="modal_loading">
+		<div class="modal-inner">
+			<h2>Loading 3D models...</h2>
+			<progress value="0" max="100">0 %</progress>
+		</div>
+	</div>
+	<!-- END: Loading stylus model -->
+
 	<!-- BEGIN: Waiting for Stylus -->
 	<div class="modal-outer hidden" id="modal_stylus_waiting">
 		<div class="modal-inner">
@@ -112,13 +125,15 @@
 
 	<script type="importmap">
 		{
-			"imports": {	
+			"imports": {
 				"three": "./libs/threejs/three.module.min.js",
 				"three/addons/": "./libs/threejs/addons/",
+				"state": "./js/state.js",
 				"stylus": "./js/stylus.js",
 				"wizard": "./js/wizard.js",
 				"status": "./js/status.js",
-				"wsman": "./js/wsman.js"
+				"wsman": "./js/wsman.js",
+				"loader": "./js/loader.js"
 			}
 		}
 	</script>
@@ -128,5 +143,7 @@
 	<script type="module" src="js/wizard.js"></script>
 	<script type="module" src="js/status.js"></script>
 	<script type="module" src="js/wsman.js"></script>
+	<script type="module" src="js/loader.js"></script>
+
 </body>
 </html>

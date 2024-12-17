@@ -8,8 +8,6 @@ class WebSocketManager extends EventTarget {
 		this.reconnectInterval = 3000;
 		this.maxRetries = Infinity; 
 		this.retryCount = 0;
-
-		this.connect();
 	}
 
 	connect() {

@@ -1,13 +1,13 @@
+import { state } from 'state'; 
+import { StylusModelLoader } from 'loader';
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 // Stylus properties
-import { stylus } from 'stylus';
-import { StylusManager } from './stylus.js';
+import { StylusManager } from 'stylus';
 
 // Wizard
-import { StylusWaiting_Start } from 'wizard';
 import { StatusBar_Init } from 'status';
 
 let group, camera, scene, renderer;
@@ -19,27 +19,39 @@ const stylusModelMap = new Map(); // Maps stylus IDs to models in scene
 
 // Manages networked stylus instances. 
 // Not sure if one should do object loading there.
-export const stylusManager = new StylusManager();
-
-const STYLUS_SCALE = 0.001; // This could be set up in a settings/properties panel
-const STYLUS_MODEL_PATH = 'assets/models/tundrastylus.obj'; 
-const STYLUS_COLORS = {
-	'Buttons Final': 0x000000,
-	'Base Final': 0xffffff,
-	'Cover Final': 0xbababa
-};
+export const stylusManager = null;
 
 // TODO:
 // 1. Load model
+// 1a Setup scene
 // 2. Set up stylus manager
 // 3. Add listeners
 // 4. Fire up websocket connection
 
-init();
-StatusBar_Init();
-StylusWaiting_Start();
+// 1. Load model
+const modelLoader = new StylusModelLoader();
 
-function init() {
+modelLoader.on( 'loaded', ( data ) => {
+	console.log( 'Stylus model loaded' );
+	stylusModel = data.model;
+
+	// 1a Setup scene
+	setupScene();
+	
+	state.stylusManager = new StylusManager();
+
+	// 2. Set up stylus manager, including listeners
+	setupStylusManager( state );
+
+	// 4. Connect stylus manager and wait for incoming messages
+	state.stylusManager.connect();
+
+	StatusBar_Init();
+});
+
+modelLoader.load();
+
+function setupScene() {
 	scene = new THREE.Scene();
 
 	// Renderer setup
@@ -81,54 +93,8 @@ function init() {
 		side: THREE.DoubleSide
 	}); 
 	stylusTipShadow = new THREE.Mesh( geometry, material );
-	stylusTipShadow.position.y = 0.01;
+	stylusTipShadow.position.y = 0.001;
 	stylusTipShadow.rotation.x = Math.PI / 2; 
-	
-	// Stylus model template loading
-	const loader = new OBJLoader();
-	loader.load( 
-		STYLUS_MODEL_PATH, 
-		(obj) => {
-			stylusModel = obj;
-			stylusModel.scale.setScalar( STYLUS_SCALE );
-
-			// Assign colors
-			stylusModel.traverse( ( child ) => {
-				if ( child.isMesh ) {
-					for (const key in STYLUS_COLORS) {
-						if ( STYLUS_COLORS.hasOwnProperty(key) ) {
-							if ( child.name == key ) {
-								child.material = new THREE.MeshStandardMaterial({ 
-									color: STYLUS_COLORS[key] 
-								});
-							}
-						}
-					}
-				}
-			});
-
-			// Add helper axes
-			const axesHelper = new THREE.AxesHelper(5); 
-			stylusModel.add(axesHelper);
-
-			// Check if we have any established stylus connections 
-			// and clone models based on how many connected styluses we have
-			if ( stylusManager.styluses.size ) {
-				for ( const id of stylusManager.styluses.keys() ) {
-					addStylusClone(id);
-				}
-			}			
-		}, 
-		(xhr) => {
-			if ( xhr.lengthComputable ) {
-				const percentComplete = xhr.loaded / xhr.total * 100;
-				console.log( 'model ' + percentComplete.toFixed( 2 ) + '% downloaded' );
-			}
-		}, 
-		(err) => {
-			console.log( 'Error loading model: ' + err );
-		} 
-	);
 
 	// Work area group
 	group = new THREE.Group();
@@ -155,12 +121,17 @@ function init() {
 
 	renderer.render(scene, camera);
 
+	window.addEventListener( 'resize', onWindowResize );
+}
+
+function setupStylusManager( state ) {
+
 	// Handle stylus manager events
-	stylusManager.on( 'new_stylus', data => {
+	state.stylusManager.on( 'new_stylus', data => {
 		addStylusClone( data.id );
 	}); 
 
-	stylusManager.on('pose', data => {
+	state.stylusManager.on('pose', data => {
 		const id = data.id;
 
 		if ( !stylusModelMap.has( id ) ) {
@@ -171,47 +142,29 @@ function init() {
 		const stylus = stylusModelMap.get( id ).stylus;
 		const shadow = stylusModelMap.get( id ).shadow;
 
-		stylus.position.subVectors(data.position, stylusManager.origin.position);
+		stylus.position.subVectors(data.position, state.stylusManager.origin.position);
 		stylus.quaternion.copy(data.quaternion);
 
-		shadow.position.x = data.tip.position.x - stylusManager.origin.position.x;
-		shadow.position.z = data.tip.position.z - stylusManager.origin.position.z;
+		shadow.position.x = data.tip.position.x - state.stylusManager.origin.position.x;
+		shadow.position.z = data.tip.position.z - state.stylusManager.origin.position.z;
 		
 		renderer.render(scene, camera);
 	});
 		
-	stylusManager.on('click', data => {
+	state.stylusManager.on('click', data => {
 		console.log('Button clicked:', data);
 		if (data.buttonName == "menu") {
-			stylusManager.setTipAsOrigin(stylusManager.getStylus(data.id));
+			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
 		}
 	});
 		
-	stylusManager.on('pressed', data => {
+	state.stylusManager.on('pressed', data => {
 		console.log('Button pressed:', data)
 	});
 		
-	stylusManager.on('released', data => {
+	state.stylusManager.on('released', data => {
 		console.log('Button released:', data)
 	});
-
-	// I wonder if this should be part of stylusManager itself?
-	// When initializing: new StylusManager( ws_connection ); 
-	// How about that?
-	stylus.connection.addEventListener('message', (m) => 
-	{
-		try {
-			const obj_arr = JSON.parse(m.detail);
-			// We are getting an array of possible multiple styluses
-			for (const m of obj_arr) {
-				stylusManager.handleWebSocketMessage(m);
-			}
-		} catch (e) {
-			console.error(e);
-		}
-	});
-
-	window.addEventListener( 'resize', onWindowResize );
 }
 
 function addStylusClone( id ) 
@@ -232,11 +185,10 @@ function addStylusClone( id )
 	const stylusTipShadowClone = stylusTipShadow.clone();
 	scene.add( stylusTipShadowClone );
 
-	const stylusCombo = {
-		stylus: stylusClone,
-		shadow: stylusTipShadowClone
-	};
-	stylusModelMap.set( id, stylusCombo );
+	stylusModelMap.set( id, { 
+		stylus: stylusClone, 
+		shadow: stylusTipShadowClone 
+	});
 
 	renderer.render(scene, camera);
 }
