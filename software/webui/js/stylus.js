@@ -96,7 +96,7 @@ export class StylusManager {
 		this.connection = new WebSocketManager( this.url );		
 		this.modalElement.classList.remove( 'hidden' );
 	
-		this.connection.addEventListener('connect', ( e ) => {
+		this.on('new_stylus', ( e ) => {
 			this.modalElement.classList.add( 'hidden' );
 		});
 
