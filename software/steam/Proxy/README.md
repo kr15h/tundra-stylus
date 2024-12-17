@@ -15,3 +15,15 @@ The following will make the websocket server available at `ws://localhost:8080/`
 ```
 websocketd --address=localhost --port=8080 python proxy.py
 ```
+
+If you want to debug, you probably would like to enable verbose output.
+
+```
+python proxy.py -v
+```
+
+You can also display help if you want.
+
+```
+python proxy.py -h
+```

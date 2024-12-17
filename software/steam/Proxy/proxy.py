@@ -4,8 +4,8 @@ SteamVR Proxy for Tundra Stylus
 Waits for connected trackers and forwards pose and button information.
 To be used in combination with websocketd. 
 
-Message format
-{ "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
+Message format (an array as multiple styluses could be connected at the same time)
+[{ "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }]
 
 """
 import openvr
@@ -13,10 +13,12 @@ import time
 import json
 import math
 from sys import stdout
+import argparse
 
 # 30 or 60 frames per second is probably what you want, 120 in some cases
 fps = 30.0
 sleep_time = 1.0 / fps
+verbose = False
 
 def initialize_vr_system():
 	"""Initialize the VR system and return the VR system handle."""
@@ -63,10 +65,21 @@ def get_active_trackers(vr_system):
 	return tracker_data
 
 def main():
+	parser = argparse.ArgumentParser(description="Tundra Stylus SteamVR OpenVR proxy")
+	parser.add_argument(
+		"-v", "--verbose", 
+		action="store_true",  # Makes this a flag (True if set, False otherwise)
+		help="Enable verbose output"
+	)
+
+	args = parser.parse_args()
+	verbose = args.verbose
+
 	vr_system = initialize_vr_system()
 
 	try:
-		print("Fetching tracker coordinates continuously (Press Ctrl+C to stop)...")
+		if verbose:
+			print("Fetching tracker coordinates continuously (Press Ctrl+C to stop)...")
 		while True:
 			tracker_data = get_active_trackers(vr_system)
 			
@@ -78,11 +91,13 @@ def main():
 					print(json_string)
 					stdout.flush()
 			else:
-				print("No active trackers detected.")
+				if verbose:
+					print("No active trackers detected.")
 			
 			time.sleep(sleep_time)  # Adjust the interval as needed
 	except KeyboardInterrupt:
-		print("\nStopped by user.")
+		if verbose:
+			print("\nStopped by user.")
 	finally:
 		openvr.shutdown()
 
