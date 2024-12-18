@@ -51,8 +51,13 @@ modelLoader.on( 'loaded', ( data ) => {
 
 	StatusBar_Init();
 
+	// Set up workspace where we will add all shapes etc
+	state.workspace = new THREE.Group();
+	state.workspace.name = 'Workspace'; 
+	scene.add( state.workspace );
+
 	// Test activate the ruler tool
-	state.activeTool = new RulerTool();
+	state.activeTool = new RulerTool( state.workspace );
 });
 
 modelLoader.load();

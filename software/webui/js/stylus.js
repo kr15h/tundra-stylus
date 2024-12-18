@@ -157,9 +157,14 @@ export class StylusManager {
 				stylus.updateButtonState(buttonName, state);
 				
 				if (state !== previousState) {
+					// We want to take origin offset into account when passing on the tip pos
+					const position = new THREE.Vector3();
+					position.copy( stylus.tip.position );
+					position.sub( this.origin.position );
+
 					const event = state ? 'pressed' : 'released';
-					this.emit(event, { id, buttonName, tip: stylus.tip });
-					if (state) this.emit('click', { id, buttonName, tip: stylus.tip });
+					this.emit(event, { id, buttonName, position, tip: stylus.tip });
+					if (state) this.emit('click', { id, buttonName, position, tip: stylus.tip });
 				}
 			}
 		}
