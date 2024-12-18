@@ -10,6 +10,9 @@ import { StylusManager } from 'stylus';
 // Wizard
 import { StatusBar_Init } from 'status';
 
+// Tools
+import { RulerTool } from 'tools/ruler.js'; 
+
 let group, camera, scene, renderer;
 
 // TODO: This should be part of something like Scene class or something
@@ -47,6 +50,9 @@ modelLoader.on( 'loaded', ( data ) => {
 	state.stylusManager.connect();
 
 	StatusBar_Init();
+
+	// Test activate the ruler tool
+	state.activeTool = new RulerTool();
 });
 
 modelLoader.load();
@@ -153,8 +159,15 @@ function setupStylusManager( state ) {
 		
 	state.stylusManager.on('click', data => {
 		console.log('Button clicked:', data);
-		if (data.buttonName == "menu") {
+
+		if ( data.buttonName == 'menu' ) {
 			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
+		}
+
+		if ( data.buttonName == 'trig' ) {
+			if ( state.activeTool ) {
+				state.activeTool.onStylusClick( data );
+			}
 		}
 	});
 		

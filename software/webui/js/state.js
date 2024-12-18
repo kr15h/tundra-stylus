@@ -1,3 +1,4 @@
 export const state = {
-	stylusManager: null 
+	stylusManager: null,
+	activeTool: null 
 }
