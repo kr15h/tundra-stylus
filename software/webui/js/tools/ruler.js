@@ -17,6 +17,8 @@ export class RulerTool {
 
 		this.textureLoader = new THREE.TextureLoader();
 		this.circleTexture = this.textureLoader.load('./assets/textures/circle.png');
+
+		this.label = null;
 	}
 
 	// TODO: There should be activate / deactivate functionality
@@ -42,11 +44,13 @@ export class RulerTool {
 			console.log( 'Point B set at ' + this.pointB );
 			this.calculateDistance();
 			this.addLine();
+			this.addLabel();
 		} else {
 			this.pointA = null;
 			this.pointB = null;
 			this.distance = 0;
 			this.clearGroup();
+			this.removeLabel();
 			console.log( 'Cleared both points, A and B' );
 		}
 	}
@@ -108,5 +112,26 @@ export class RulerTool {
 
 		const fatLine = new Line2(lineGeometry, lineMaterial);
 		this.rulerGroup.add(fatLine);
+	}
+
+	addLabel() {
+		this.label = document.createElement('div');
+		this.label.className = 'label';
+
+		const mid = new THREE.Vector3();
+		mid.lerpVectors(this.pointA, this.pointB, 0.5);
+
+		this.label.dataset.x = mid.x;
+		this.label.dataset.y = mid.y + 0.1;
+		this.label.dataset.z = mid.z;
+
+		const mm = this.distance * 1000;
+		this.label.textContent = `dist: ${mm.toFixed(2)} mm`;
+		document.body.appendChild(this.label);
+	}
+
+	removeLabel() {
+		this.label.remove();
+		this.label = null;
 	}
 }

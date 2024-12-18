@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Stylus properties
-import { StylusManager } from 'stylus';
+import { StylusManager } from 'stylus';	
 
 // Wizard
 import { StatusBar_Init } from 'status';
@@ -85,7 +85,7 @@ function setupScene() {
 	const ambientLight = new THREE.AmbientLight( 0xffffff );
 	scene.add( ambientLight );
 
-	const pointLight = new THREE.PointLight( 0xffffff, 15 );
+	const pointLight = new THREE.PointLight( 0xffffff, 1 );
 	camera.add( pointLight );
 	scene.add( camera );
 
@@ -218,5 +218,31 @@ function onWindowResize() {
 }
 
 function animate() {
-	renderer.render( scene, camera );
+	renderer.render(scene, camera);
+
+	// Get all labels and calculate their new 2D coordinates
+	const labels = document.getElementsByClassName( 'label' );
+	for ( const label of labels ) {
+		const pos3D = new THREE.Vector3(
+			label.dataset.x,
+			label.dataset.y,
+			label.dataset.z
+		);
+		const pos2D = getScreenCoordinates(pos3D, camera, renderer);
+		label.style.left = `${Math.round(pos2D.x)}px`;
+		label.style.top = `${Math.round(pos2D.y)}px`;
+	}
+}
+
+export function getScreenCoordinates(position, camera, renderer) {
+	const vector = position.clone(); // Clone to avoid modifying the original
+	vector.project(camera); // Project the 3D position to normalized device coordinates (NDC)
+
+	const widthHalf = renderer.domElement.clientWidth / 2;
+	const heightHalf = renderer.domElement.clientHeight / 2;
+
+	return {
+		x: (vector.x * widthHalf) + widthHalf, // Convert NDC to screen-space
+		y: -(vector.y * heightHalf) + heightHalf, // Invert Y for screen-space
+	};
 }
