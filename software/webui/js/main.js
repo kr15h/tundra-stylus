@@ -35,6 +35,13 @@ workspace.name = 'Workspace';
 const toolMan = new ToolManager(workspace); // Manages tool activation/deactivation
 const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool man
 
+// FPS Control Variables
+const clock = new THREE.Clock();
+let delta = 0;
+const fps = 30;
+const interval = 1 / fps;
+
+
 const modelLoader = new StylusModelLoader();
 modelLoader.on( 'loaded', ( data ) => {
 	console.log( 'Stylus model loaded' );
@@ -216,19 +223,27 @@ function onWindowResize() {
 }
 
 function animate() {
-	renderer.render(scene, camera);
+	requestAnimationFrame(animate);
 
-	// Get all labels and calculate their new 2D coordinates
-	const labels = document.getElementsByClassName( 'label' );
-	for ( const label of labels ) {
-		const pos3D = new THREE.Vector3(
-			label.dataset.x,
-			label.dataset.y,
-			label.dataset.z
-		);
-		const pos2D = getScreenCoordinates(pos3D, camera, renderer);
-		label.style.left = `${Math.round(pos2D.x)}px`;
-		label.style.top = `${Math.round(pos2D.y)}px`;
+	// Control FPS
+	delta += clock.getDelta();
+	if (delta > interval) {
+		renderer.render(scene, camera);
+
+		// Get all labels and calculate their new 2D coordinates
+		const labels = document.getElementsByClassName( 'label' );
+		for ( const label of labels ) {
+			const pos3D = new THREE.Vector3(
+				label.dataset.x,
+				label.dataset.y,
+				label.dataset.z
+			);
+			const pos2D = getScreenCoordinates(pos3D, camera, renderer);
+			label.style.left = `${Math.round(pos2D.x)}px`;
+			label.style.top = `${Math.round(pos2D.y)}px`;
+		}
+
+		delta = delta % interval;		
 	}
 }
 
