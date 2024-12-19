@@ -4,6 +4,7 @@ import * as THREE from 'three';
 // Stylus tip distance from tracker origin
 const STYLUS_TIP_DISTANCE = 0.18889; // in meters
 const STYLUS_TIP_OFFSET = 0.13356; // axial, in meters
+export const STYLUS_ZOFFSET = 0.015; // the model is a bit offset
 
 export class Stylus {
 	constructor(id) {
@@ -50,7 +51,7 @@ export class Stylus {
 		const tipPosition = this.calculateTipPosition(
 			this.position, 
 			this.quaternion, 
-			STYLUS_TIP_OFFSET, -STYLUS_TIP_OFFSET, 0
+			STYLUS_TIP_OFFSET, -STYLUS_TIP_OFFSET, STYLUS_ZOFFSET
 		);
 
 		this.tip.position.copy(tipPosition);

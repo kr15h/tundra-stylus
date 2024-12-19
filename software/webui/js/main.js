@@ -91,7 +91,7 @@ function setupScene() {
 
 	// Controls
 	const controls = new OrbitControls( camera, renderer.domElement );
-	controls.minDistance = 1;
+	controls.minDistance = 0.1;
 	controls.maxDistance = 100;
 	controls.maxPolarAngle = Math.PI / 2;
 

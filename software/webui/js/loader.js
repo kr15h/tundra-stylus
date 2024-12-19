@@ -3,11 +3,17 @@
 
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { STYLUS_ZOFFSET } from 'stylus'; 
 
 export class StylusModelLoader {
 	constructor( path ) {
 		this.listeners = {};
 		this.scale = 0.001;
+		this.offset = {
+			x: 0,
+			y: 0,
+			z: STYLUS_ZOFFSET * 1000 // 7 mm
+		}
 		this.path = 'assets/models/tundrastylus.obj';
 		this.colors = {
 			'Buttons Final': 0x000000,
@@ -29,6 +35,10 @@ export class StylusModelLoader {
 				// Assign colors
 				this.model.traverse( ( child ) => {
 					if ( child.isMesh ) {
+						// Shift origin
+						const geometry = child.geometry;
+						geometry.translate(this.offset.x, this.offset.y, this.offset.z); 
+
 						for (const key in this.colors) {
 							if ( this.colors.hasOwnProperty(key) ) {
 								if ( child.name == key ) {
@@ -42,7 +52,7 @@ export class StylusModelLoader {
 				});
 
 				// Add helper axes
-				const axesHelper = new THREE.AxesHelper(5); 
+				const axesHelper = new THREE.AxesHelper(50); 
 				this.model.add(axesHelper);	
 				
 				this.modalElement.classList.add( 'hidden' );
