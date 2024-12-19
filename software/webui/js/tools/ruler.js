@@ -3,31 +3,57 @@ import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 
-
 export class RulerTool {
 	constructor( workspace ) {
 		this.pointA = null;
 		this.pointB = null;
 		this.distance = 0;
 		this.workspace = workspace;
-
 		this.rulerGroup = new THREE.Group();
-		this.rulerGroup.name = 'RulerGroup'; 
-		workspace.add( this.rulerGroup );
-
 		this.textureLoader = new THREE.TextureLoader();
 		this.circleTexture = this.textureLoader.load('./assets/textures/circle.png');
-
 		this.label = null;
 	}
 
-	// TODO: There should be activate / deactivate functionality
-	//       Probably implemented via sth like ToolManager or...
-	//       So we can add and remve rulr gr on deactivativation
+	activate() {
+		this.workspace.add(this.rulerGroup);
+	}
 
-	onStylusClick( e ) {
-		const position = e.position;
-		this.setPoint( position );
+	deactivate() {
+		this.workspace.remove(this.rulerGroup);
+		this.rulerGroup.traverse((child) => {
+			if (child.isMesh) {
+				if (child.geometry) {
+					child.geometry.dispose();
+				}
+			}
+
+			if (child.material) {
+				child.material.dispose();
+			}
+		});
+		this.rulerGroup.clear();
+		this.rulerGroup = null;
+	}
+
+	onStylusClick(e) {
+		if ( e.buttonName == 'trig' ) {
+			const position = e.position;
+			this.setPoint( position );	
+		}
+	}
+
+
+	onStylusPressed(e) {
+		// Nothing here
+	}
+
+	onStylusReleased(e) {
+		// Nothing here
+	}
+
+	onStylusPose(pose) {
+		// Nothing here
 	}
 
 	setPoint( position ) {
@@ -36,12 +62,10 @@ export class RulerTool {
 			this.pointA.copy( position );
 			this.distance = 0;
 			this.addPoint( this.pointA );
-			console.log( 'Point A set at ' + this.pointA );
 		} else if ( !this.pointB ) {
 			this.pointB = new THREE.Vector3();
 			this.pointB.copy( position );
 			this.addPoint( this.pointB );
-			console.log( 'Point B set at ' + this.pointB );
 			this.calculateDistance();
 			this.addLine();
 			this.addLabel();
@@ -51,7 +75,6 @@ export class RulerTool {
 			this.distance = 0;
 			this.clearGroup();
 			this.removeLabel();
-			console.log( 'Cleared both points, A and B' );
 		}
 	}
 
@@ -84,7 +107,7 @@ export class RulerTool {
 		// Create a sprite material
 		const spriteMaterial = new THREE.SpriteMaterial({
 			map: this.circleTexture,
-			color: 0xff0000, // Tint color
+			color: 0xff00ff, // Tint color
 			sizeAttenuation: false, // Keep size constant regardless of distance
 			depthTest: false
 		});
@@ -105,7 +128,7 @@ export class RulerTool {
 
 		// Create the line material
 		const lineMaterial = new LineMaterial({
-			color: 0x00ff00,
+			color: 0x00ffff,
 			linewidth: 2, // Width in screen space
 			depthTest: false, // Always render on top
 		});
@@ -115,6 +138,8 @@ export class RulerTool {
 	}
 
 	addLabel() {
+		this.removeLabel();
+
 		this.label = document.createElement('div');
 		this.label.className = 'label';
 
@@ -126,12 +151,14 @@ export class RulerTool {
 		this.label.dataset.z = mid.z;
 
 		const mm = this.distance * 1000;
-		this.label.textContent = `dist: ${mm.toFixed(2)} mm`;
+		this.label.textContent = `${mm.toFixed(2)} mm`;
 		document.body.appendChild(this.label);
 	}
 
 	removeLabel() {
-		this.label.remove();
-		this.label = null;
+		if (this.label) {
+			this.label.remove();
+			this.label = null;	
+		}
 	}
 }

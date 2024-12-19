@@ -11,6 +11,7 @@ import { StylusManager } from 'stylus';
 import { StatusBar_Init } from 'status';
 
 // Tools
+import { ToolManager } from 'tools/manager.js'; 
 import { RulerTool } from 'tools/ruler.js'; 
 
 let group, camera, scene, renderer;
@@ -31,33 +32,41 @@ export const stylusManager = null;
 // 3. Add listeners
 // 4. Fire up websocket connection
 
-// 1. Load model
-const modelLoader = new StylusModelLoader();
+// Set up workspace where we will add all shapes etc
+const workspace = new THREE.Group();
+workspace.name = 'Workspace'; 
 
+// Set up tool manager
+const toolManager = new ToolManager();
+
+// Tools
+const rulerTool = new RulerTool( workspace );
+
+const modelLoader = new StylusModelLoader();
 modelLoader.on( 'loaded', ( data ) => {
 	console.log( 'Stylus model loaded' );
 	stylusModel = data.model;
 
 	// 1a Setup scene
 	setupScene();
+
+	scene.add( workspace );
 	
+	// TODO: store it here as root of app instead of state
 	state.stylusManager = new StylusManager();
 
 	// 2. Set up stylus manager, including listeners
+	// Does the stylus manager really need access to state?
 	setupStylusManager( state );
 
 	// 4. Connect stylus manager and wait for incoming messages
 	state.stylusManager.connect();
 
+	// If this needs to set up listeners to things, we pass those things to it
 	StatusBar_Init();
 
-	// Set up workspace where we will add all shapes etc
-	state.workspace = new THREE.Group();
-	state.workspace.name = 'Workspace'; 
-	scene.add( state.workspace );
-
 	// Test activate the ruler tool
-	state.activeTool = new RulerTool( state.workspace );
+	toolManager.selectTool(rulerTool);
 });
 
 modelLoader.load();
@@ -158,30 +167,26 @@ function setupStylusManager( state ) {
 
 		shadow.position.x = data.tip.position.x - state.stylusManager.origin.position.x;
 		shadow.position.z = data.tip.position.z - state.stylusManager.origin.position.z;
+
+		toolManager.onStylusPose(data);
 		
 		renderer.render(scene, camera);
 	});
 		
 	state.stylusManager.on('click', data => {
-		console.log('Button clicked:', data);
-
 		if ( data.buttonName == 'menu' ) {
 			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
 		}
 
-		if ( data.buttonName == 'trig' ) {
-			if ( state.activeTool ) {
-				state.activeTool.onStylusClick( data );
-			}
-		}
+		toolManager.onStylusClick(data);
 	});
 		
 	state.stylusManager.on('pressed', data => {
-		console.log('Button pressed:', data)
+		toolManager.onStylusPressed(data);
 	});
 		
 	state.stylusManager.on('released', data => {
-		console.log('Button released:', data)
+		toolManager.onStylusReleased(data);
 	});
 }
 
