@@ -10,7 +10,7 @@ This proxy uses Python OpenVR bindings to extract tracking data from SteamVR.
 
 ## Usage
 
-The following will make the websocket server available at `ws://localhost:8080/`.
+Make sure you start SteamVR and that the Tundra Tracker attached to the stylus is detected. The following will make the websocket server available at `ws://localhost:8080/`.
 
 ```
 websocketd --address=localhost --port=8080 python proxy.py
