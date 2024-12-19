@@ -45,6 +45,26 @@ export class FreehandTool {
 		this.points.length = 0;
 	}
 
+	clear() {
+		if (this.freehandGroup.children.length === 0) {
+			return;
+		}
+
+		this.freehandGroup.traverse((child) => {
+			if (child.isMesh) {
+				if (child.geometry) {
+					child.geometry.dispose();
+				}
+			}
+
+			if (child.material) {
+				child.material.dispose();
+			}
+		});
+
+		this.freehandGroup.clear();
+	}
+
 	onStylusClick(e) {
 		// No
 	}

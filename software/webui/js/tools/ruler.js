@@ -13,15 +13,19 @@ export class RulerTool {
 		this.textureLoader = new THREE.TextureLoader();
 		this.circleTexture = this.textureLoader.load('./assets/textures/circle.png');
 		this.label = null;
-	}
-
-	activate() {
 		this.workspace.add(this.rulerGroup);
 	}
 
-	deactivate() {
-		this.workspace.remove(this.rulerGroup);
+	activate() {
+		//this.workspace.add(this.rulerGroup);
+	}
 
+	deactivate() {
+		//this.workspace.remove(this.rulerGroup);
+		this.clear();
+	}
+
+	clear() {
 		if (this.rulerGroup.children.length === 0) {
 			return;
 		}

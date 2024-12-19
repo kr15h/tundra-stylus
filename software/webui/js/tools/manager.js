@@ -56,4 +56,10 @@ export class ToolManager {
 			this.activeTool.onStylusPose(pose)
 		}
 	}
+
+	clear() {
+		if (this.activeTool) {
+			this.activeTool.clear();
+		}
+	}
 }

@@ -7,7 +7,6 @@ export class ToolBar {
 
 		const buttons = this.toolBarElement.getElementsByTagName('button');
 		for (const button of buttons) {
-			console.log(button.textContent);
 			if (button.textContent == 'Ruler') {
 				button.addEventListener('click', (e) => {
 					this.deselectAllToolButtons();
@@ -19,6 +18,10 @@ export class ToolBar {
 					this.deselectAllToolButtons();
 					this.toolManager.selectTool(Tools.FREEHAND);
 					this.selectToolButton(button.textContent);
+				});
+			} else if (button.textContent == 'Clear') {
+				button.addEventListener('click', (e) => {
+					this.toolManager.clear();
 				});
 			}
 		}
