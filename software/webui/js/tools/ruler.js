@@ -21,6 +21,11 @@ export class RulerTool {
 
 	deactivate() {
 		this.workspace.remove(this.rulerGroup);
+
+		if (this.rulerGroup.children.length === 0) {
+			return;
+		}
+
 		this.rulerGroup.traverse((child) => {
 			if (child.isMesh) {
 				if (child.geometry) {
@@ -32,8 +37,12 @@ export class RulerTool {
 				child.material.dispose();
 			}
 		});
+
 		this.rulerGroup.clear();
-		this.rulerGroup = null;
+		this.removeLabel();
+		this.pointA = null;
+		this.pointB = null;
+		this.distance = 0;
 	}
 
 	onStylusClick(e) {

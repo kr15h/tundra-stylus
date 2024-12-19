@@ -143,12 +143,16 @@ export class StylusManager {
 				this.setTipAsOrigin(stylus);
 			}
 
+			const tipPosition = new THREE.Vector3();
+			tipPosition.copy(stylus.tip.position);
+			tipPosition.sub(this.origin.position);
+
 			this.emit('pose', { 
 				id, 
 				pose, 
 				position: stylus.position, 
 				quaternion: stylus.quaternion,
-				tip: stylus.tip 
+				tip: tipPosition 
 			});
 		}
 		

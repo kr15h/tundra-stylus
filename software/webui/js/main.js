@@ -10,9 +10,11 @@ import { StylusManager } from 'stylus';
 // Wizard
 import { StatusBar_Init } from 'status';
 
-// Tools
-import { ToolManager } from 'tools/manager.js'; 
-import { RulerTool } from 'tools/ruler.js'; 
+// Tool manager with tools included
+import { ToolManager, Tools } from 'tools/manager.js'; 
+
+// UI Widgets
+import { ToolBar } from 'widgets/toolbar.js';
 
 let group, camera, scene, renderer;
 
@@ -25,22 +27,13 @@ const stylusModelMap = new Map(); // Maps stylus IDs to models in scene
 // Not sure if one should do object loading there.
 export const stylusManager = null;
 
-// TODO:
-// 1. Load model
-// 1a Setup scene
-// 2. Set up stylus manager
-// 3. Add listeners
-// 4. Fire up websocket connection
-
 // Set up workspace where we will add all shapes etc
 const workspace = new THREE.Group();
 workspace.name = 'Workspace'; 
 
 // Set up tool manager
-const toolManager = new ToolManager();
-
-// Tools
-const rulerTool = new RulerTool( workspace );
+const toolMan = new ToolManager(workspace); // Manages tool activation/deactivation
+const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool man
 
 const modelLoader = new StylusModelLoader();
 modelLoader.on( 'loaded', ( data ) => {
@@ -66,7 +59,7 @@ modelLoader.on( 'loaded', ( data ) => {
 	StatusBar_Init();
 
 	// Test activate the ruler tool
-	toolManager.selectTool(rulerTool);
+	toolMan.selectTool(Tools.RULER);
 });
 
 modelLoader.load();
@@ -165,10 +158,10 @@ function setupStylusManager( state ) {
 		stylus.position.subVectors(data.position, state.stylusManager.origin.position);
 		stylus.quaternion.copy(data.quaternion);
 
-		shadow.position.x = data.tip.position.x - state.stylusManager.origin.position.x;
-		shadow.position.z = data.tip.position.z - state.stylusManager.origin.position.z;
+		shadow.position.x = data.tip.x;// - state.stylusManager.origin.position.x;
+		shadow.position.z = data.tip.z;// - state.stylusManager.origin.position.z;
 
-		toolManager.onStylusPose(data);
+		toolMan.onStylusPose(data);
 		
 		renderer.render(scene, camera);
 	});
@@ -178,15 +171,15 @@ function setupStylusManager( state ) {
 			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
 		}
 
-		toolManager.onStylusClick(data);
+		toolMan.onStylusClick(data);
 	});
 		
 	state.stylusManager.on('pressed', data => {
-		toolManager.onStylusPressed(data);
+		toolMan.onStylusPressed(data);
 	});
 		
 	state.stylusManager.on('released', data => {
-		toolManager.onStylusReleased(data);
+		toolMan.onStylusReleased(data);
 	});
 }
 

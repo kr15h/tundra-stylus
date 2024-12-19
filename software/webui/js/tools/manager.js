@@ -1,6 +1,19 @@
+import { RulerTool } from 'tools/ruler.js'; 
+import { FreehandTool } from 'tools/freehand.js'; 
+
+export const Tools = {
+	RULER: null,
+	FREEHAND: null
+}
+
 export class ToolManager {
-	constructor() {
+	constructor(workspace) {
+		this.workspace = workspace;
 		this.activeTool = null;
+
+		// Init tools
+		Tools.RULER = new RulerTool(this.workspace);
+		Tools.FREEHAND = new FreehandTool(this.workspace);
 	}
 
 	selectTool(tool) {
