@@ -16,7 +16,7 @@ from sys import stdout
 import argparse
 
 # 30 or 60 frames per second is probably what you want, 120 in some cases
-fps = 30.0
+fps = 60.0
 sleep_time = 1.0 / fps
 verbose = False
 

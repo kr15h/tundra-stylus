@@ -38,7 +38,7 @@ const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool 
 // FPS Control Variables
 const clock = new THREE.Clock();
 let delta = 0;
-const fps = 30;
+const fps = 60;
 const interval = 1 / fps;
 
 
@@ -105,11 +105,11 @@ function setupScene() {
 	controls.maxPolarAngle = Math.PI / 2;
 
 	// Stylus tip shadow template
-	const geometry = new THREE.CircleGeometry( 0.05, 32 ); 
+	const geometry = new THREE.CircleGeometry( 0.01, 32 ); 
 	const material = new THREE.MeshBasicMaterial({ 
 		color: 0x000000, 
 		transparent: true, 
-		opacity: 0.5, 
+		opacity: 0.25, 
 		side: THREE.DoubleSide
 	}); 
 	stylusTipShadow = new THREE.Mesh( geometry, material );
