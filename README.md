@@ -1,14 +1,20 @@
 # Tundra Stylus
 
-A 3D-printable structure that turns your Tundra Tracker into a stylus. 
+Tundra Tracker stylus baseplate for 3D positional tracking.
+
+![Stylus](media/stylus.jpg)
+
 
 ## Introduction
 
-Vive Lighthouse system is great! The main use of it is VR, but what about drawing or painting in space? Stylus input is the natural choice of many, but there is no Vive Lighthouse stylus available. Logitech almost launched VR Ink, but then decided not to. What to do?
+Vive Lighthouse system is great! The main use of it is VR, but what about drawing or painting in space? Stylus input is the natural choice of many, but there is no VIVE Lighthouse Stylus available. Logitech almost launched VR Ink, but then decided not to. What to do?
 
-Tundra Tracker is the smallest available off-the-shelve tracker that is compatible with the Vive Lighthouse system. It offers a great deal of flexibility via its IO Expansion Board. With that in mind, all we need is a neat circuit board with buttons and a 3D-printable structure that looks and feels like a stylus. 
+Tundra Tracker is the smallest available off-the-shelve tracker that is compatible with the VIVE Lighthouse system. It offers a great deal of flexibility via its IO Expansion Board. With that in mind, all we need is a neat circuit board with buttons and a 3D-printable structure that looks and feels like a stylus. 
 
 And that is Tundra Stylus! Produce the circuit board, 3D print the enclosure and you are ready to go, given that you have the Tundra Tracker and its IO Expansion board.
+
+![Hello Video](media/hello.mp4)
+
 
 ## Making
 
