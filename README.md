@@ -13,7 +13,7 @@ Tundra Tracker is the smallest available off-the-shelve tracker that is compatib
 
 And that is Tundra Stylus! Produce the circuit board, 3D print the enclosure and you are ready to go, given that you have the Tundra Tracker and its IO Expansion board.
 
-![Hello Video](media/hello.mp4)
+[![Hello Video](media/hello.gif)](media/hello.mp4)
 
 
 ## Making
