@@ -16,7 +16,7 @@ And that is Tundra Stylus! Produce the circuit board, 3D print the enclosure and
 ![Stylus](media/stylus.jpg)
 
 
-## Making
+## Replicating
 
 Here is a table of contents of different documentation sections that will tell you what to do. You can also jump right to the design, electronics and software sections if you know all that by heart and prefer not to read too much documentation. It is up to you.
 
