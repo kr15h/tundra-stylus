@@ -21,8 +21,8 @@ Tundra Stylus would not be possible without a list of core off-the-shelve compon
 | --- | --- | --- |
 | PLA Filament[^1] | 320g[^2] | [3DK Berlin](https://3dk.berlin/en/pla/109-pla-filament-milky-white.html) |
 | FR2 single-sided copper clad at least 100x20mm[^3] | 1pcs | [Bungard](https://www.bungard.de/en/consumables/consumables/special-purpose-laminates)[^4] |
-| Nylon bolts, M2.5, 20mm | 3pcs | [DigiKey](https://www.digikey.fi/en/products/detail/essentra-components/50M025045D020/11637988) |
-| Nylon Nuts, M2.5 | 3pcs | [DigiKey](https://www.digikey.fi/en/products/detail/essentra-components/04M025045HN/9677099) |
+| Nylon bolts, M2.5, 20mm | 4pcs | [DigiKey](https://www.digikey.fi/en/products/detail/essentra-components/50M025045D020/11637988) |
+| Nylon Nuts, M2.5 | 4pcs | [DigiKey](https://www.digikey.fi/en/products/detail/essentra-components/04M025045HN/9677099) |
 | Tactile switch, Omron, B3SN-3112P | 4pcs | [DigiKey](https://www.digikey.com/en/products/detail/omron-electronics-inc-emc-div/B3SN-3112P/27856) |
 
 
