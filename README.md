@@ -4,6 +4,8 @@ Tundra Tracker stylus baseplate for 3D positional tracking.
 
 ![Stylus](media/stylus.jpg)
 
+![Hello Video](media/hello.gif)
+
 
 ## Introduction
 
@@ -12,8 +14,6 @@ Vive Lighthouse system is great! The main use of it is VR, but what about drawin
 Tundra Tracker is the smallest available off-the-shelve tracker that is compatible with the VIVE Lighthouse system. It offers a great deal of flexibility via its IO Expansion Board. With that in mind, all we need is a neat circuit board with buttons and a 3D-printable structure that looks and feels like a stylus. 
 
 And that is Tundra Stylus! Produce the circuit board, 3D print the enclosure and you are ready to go, given that you have the Tundra Tracker and its IO Expansion board.
-
-[![Hello Video](media/hello.gif)](media/hello.mp4)
 
 
 ## Making
