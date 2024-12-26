@@ -15,7 +15,7 @@ Tundra Stylus would not be possible without a list of core off-the-shelve compon
 - Screwdriver.
 
 
-## Other Parts
+## Parts
 
 | Description | Amount | Link |
 | --- | --- | --- |
