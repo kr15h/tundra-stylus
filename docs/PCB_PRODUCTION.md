@@ -1,6 +1,6 @@
 # PCB Production
 
-An essential component of the Tundra Stylus is its button board with 4 buttons. 
+An essential component of the Tundra Stylus is its button board with 4 tactile switches. 
 
 ![Tundra Stylus PCB](../media/stylus_open.jpg)
 
@@ -15,12 +15,22 @@ The cables are connected to the PCB in the following order (starting from the ti
 3. Trackpad
 4. Menu
 
+
 The names of the buttons might make you think that some of them can sense pressure, but all of them are plain digital IO buttons. You will need to cut them shorter, but try to leave a bit of extra in case you mess something up.
 
 ![Stylus PCB Connections](../media/stylus_pcb_connections.jpg)
 
 ## Making the Board
 
-The way the PCB you see in the image 
+There are two ways to make the board.
+
+1. PCB milling
+2. Manufacturing online
+
+Gerber files for PCB milling process can be found in [electronics/gerbers](../electronics/gerbers) directory. You can use KiCad electronics design software to export Gerber files for manufacturing online. KiCad 7 was used to design the board.
+
+![Plain PCB](../media/pcb.jpg)
+
+As for the milling process, CopperCAM software was used to calculate toolpaths in HPGL form. Then, Bungard CCD/2 MTC machine was used to mill the board. A 60deg V bit was used for isolation milling and a 0.8mm cylindrical tool was used to cut the holes and outline. FR2 single-sided copper clads from Bungard were used as the base material. 
 
 
