@@ -1,4 +1,4 @@
-# Steam VR OpenVR proxy
+# SteamVR OpenVR proxy
 
 This proxy uses Python OpenVR bindings to extract tracking data from SteamVR.
 
