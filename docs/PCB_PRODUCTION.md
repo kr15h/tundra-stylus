@@ -36,9 +36,19 @@ As for the milling process, CopperCAM software was used to calculate toolpaths i
 
 ### Manufacturing Online
 
-Gerber files for manufacturing a single-sided board for JLCPCB is included in [electronics/gerbers/jlcpcb](../electronics/gerbers/jlcpcb). Log into JLCPCB and upload the zip file. It should show up as in the image below. 
+Gerber files for manufacturing a single-sided board online is included in [electronics/gerbers/online](../electronics/gerbers/online). It has been tested with JLCPCB and PCBWay. It should show up as in the images below. 
 
 ![JLCPCB](../media/jlcpcb.jpg)
+
+![PcbWAY](../media/pcbway.jpg)
+
+As for the parameters, the following are most important.
+
+| Parameter | Value |
+| --- | --- |
+| Base Material | FR-4 |
+| Layers | 1 |
+| PCB Thickness | 1.6mm |
 
 Do not forget to order a SMT-Stencil if you want to use solder paste and reflow soldering. 
 
