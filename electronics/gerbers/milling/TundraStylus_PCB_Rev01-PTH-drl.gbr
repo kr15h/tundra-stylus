@@ -1,12 +1,12 @@
 %TF.GenerationSoftware,KiCad,Pcbnew,7.0.11-7.0.11~ubuntu22.04.1*%
-%TF.CreationDate,2024-11-27T18:01:47+02:00*%
-%TF.ProjectId,TundraStylus_Rev00_PCB,54756e64-7261-4537-9479-6c75735f5265,rev?*%
+%TF.CreationDate,2024-12-29T23:43:17+01:00*%
+%TF.ProjectId,TundraStylus_PCB_Rev01,54756e64-7261-4537-9479-6c75735f5043,rev?*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Plated,1,2,PTH,Drill*%
 %TF.FilePolarity,Positive*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 7.0.11-7.0.11~ubuntu22.04.1) date 2024-11-27 18:01:47*
+G04 Created by KiCad (PCBNEW 7.0.11-7.0.11~ubuntu22.04.1) date 2024-12-29 23:43:17*
 %MOMM*%
 %LPD*%
 G01*

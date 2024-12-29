@@ -389,7 +389,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "warning",
+      "pin_to_pin": "error",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
       "simulation_model_issue": "ignore",
@@ -404,7 +404,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "TundraStylus_Rev00_PCB.kicad_pro",
+    "filename": "TundraStylus_PCB_Rev01.kicad_pro",
     "version": 1
   },
   "net_settings": {

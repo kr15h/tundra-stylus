@@ -373,7 +373,7 @@
       (effects (font (size 1.27 1.27)) hide)
     )
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "H1") (unit 1)
         )
@@ -399,7 +399,7 @@
     (pin "1" (uuid 3afc352e-f8e8-45e6-9463-3fdb6d15fa30))
     (pin "2" (uuid 06f69d5b-3d2b-4b0e-a2f5-9b7bca3de6a2))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "J1") (unit 1)
         )
@@ -425,7 +425,7 @@
     (pin "1" (uuid 712bd5cc-dea4-43a8-a5fa-29da2230934b))
     (pin "2" (uuid a4b2c8ab-2336-4dfe-8b9c-e689c1af5bc5))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "SW4") (unit 1)
         )
@@ -449,7 +449,7 @@
       (effects (font (size 1.27 1.27)) hide)
     )
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "H3") (unit 1)
         )
@@ -475,7 +475,7 @@
     (pin "1" (uuid 6cd5c9d8-10a1-45a6-9cc7-1ba2f2e96b54))
     (pin "2" (uuid 9e95c3b9-2c2b-4b1b-ad9f-de28f46af1af))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "SW1") (unit 1)
         )
@@ -501,7 +501,7 @@
     (pin "1" (uuid 9ec05f2b-04a8-41c3-a3be-31eac43dbc15))
     (pin "2" (uuid a0ea9127-8804-426c-9aed-9fc1c2949e98))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "SW2") (unit 1)
         )
@@ -527,7 +527,7 @@
     (pin "1" (uuid 0c4e6d35-bb1b-4b87-a0a9-3f252ba6fcdc))
     (pin "2" (uuid 2265ca26-b40f-4427-83e2-a6699bc8044b))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "J3") (unit 1)
         )
@@ -553,7 +553,7 @@
     (pin "1" (uuid bd8f6bcd-5a13-499c-9af7-d1cd1f5047eb))
     (pin "2" (uuid f2f8520c-1b82-4761-88d0-ca7e9a4f6155))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "J2") (unit 1)
         )
@@ -579,7 +579,7 @@
     (pin "1" (uuid c0d9f71c-a5a3-420a-b147-4157832557a3))
     (pin "2" (uuid b24dc840-227f-4271-9d8d-f5279c32c2ff))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "J4") (unit 1)
         )
@@ -605,7 +605,7 @@
     (pin "1" (uuid 6645e965-647a-4e0b-928c-efbb6045f0b2))
     (pin "2" (uuid 7824f70d-e96e-4ba1-8957-496651dbb709))
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "SW3") (unit 1)
         )
@@ -629,7 +629,7 @@
       (effects (font (size 1.27 1.27)) hide)
     )
     (instances
-      (project "TundraStylus_Rev00_PCB"
+      (project "TundraStylus_PCB_Rev01"
         (path "/1c2390f1-9555-4b17-a8dd-ace38001866f"
           (reference "H2") (unit 1)
         )
