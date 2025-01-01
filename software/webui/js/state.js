@@ -1,3 +1,3 @@
 export const state = {
-	stylusManager: null
+	stylus: null
 }

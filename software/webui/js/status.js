@@ -1,6 +1,7 @@
 import { state } from 'state';
 import { SetOriginHelp_Show } from 'wizard'; 
 
+// TODO: pass the TundraStylus instance here directly instead of via state
 export function StatusBar_Init() {
 	const elWidget = document.getElementById('widget_stylus_connection');
 
@@ -11,8 +12,7 @@ export function StatusBar_Init() {
 	}
 	
 	// We need to hide this only when connection is established
-	state.stylusManager.connection.addEventListener('connect', ( e ) => 
-	{
+	state.stylus.connection.addEventListener('connect', (e) => {
 		// Set up color indicator to green as soon as connection is established
 		const elIndicatorColor = elWidget.getElementsByClassName('indicator-color')[0];
 
@@ -33,8 +33,7 @@ export function StatusBar_Init() {
 			elIndicatorText.classList.add('color-green');
 	});
 
-	state.stylusManager.connection.addEventListener('close', ( e ) => 
-	{
+	state.stylus.connection.addEventListener('close', (e) => {
 		// Set color indicator to red as soon as connection is closed
 		const elIndicatorColor = elWidget.getElementsByClassName('indicator-color')[0];
 

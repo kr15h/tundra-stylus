@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Stylus properties
-import { StylusManager } from 'stylus';	
+import { TundraStylus } from 'TundraStylus';	
 
 // Wizard
 import { StatusBar_Init } from 'status';
@@ -23,9 +23,7 @@ let stylusModel = null; // Stylus model template to be cloned for each stylus in
 let stylusTipShadow = null; // Stylus tip shadow instance to be cloned
 const stylusModelMap = new Map(); // Maps stylus IDs to models in scene
 
-// Manages networked stylus instances. 
-// Not sure if one should do object loading there.
-export const stylusManager = null;
+export const stylus = null;
 
 // Set up workspace where we will add all shapes etc
 const workspace = new THREE.Group();
@@ -41,7 +39,6 @@ let delta = 0;
 const fps = 60;
 const interval = 1 / fps;
 
-
 const modelLoader = new StylusModelLoader();
 modelLoader.on( 'loaded', ( data ) => {
 	console.log( 'Stylus model loaded' );
@@ -53,14 +50,14 @@ modelLoader.on( 'loaded', ( data ) => {
 	scene.add( workspace );
 	
 	// TODO: store it here as root of app instead of state
-	state.stylusManager = new StylusManager();
+	state.stylus = new TundraStylus();
 
 	// 2. Set up stylus manager, including listeners
 	// Does the stylus manager really need access to state?
-	setupStylusManager( state );
+	setupStylus( state );
 
 	// 4. Connect stylus manager and wait for incoming messages
-	state.stylusManager.connect();
+	state.stylus.connect();
 
 	// If this needs to set up listeners to things, we pass those things to it
 	StatusBar_Init();
@@ -144,15 +141,43 @@ function setupScene() {
 	window.addEventListener( 'resize', onWindowResize );
 }
 
-function setupStylusManager( state ) {
+function setupStylus( state ) {
 
-	// Handle stylus manager events
-	state.stylusManager.on( 'new_stylus', data => {
-		addStylusClone( data.id );
-	}); 
+	// Handle stylus manager events	
+	// state.stylus.on( 'new_stylus', data => {
+	// 	addStylusClone( data.id );
+	// }); 
 
-	state.stylusManager.on('pose', data => {
-		const id = data.id;
+	state.stylus.addEventListener('new_stylus', detail => {
+    const data = detail.data;
+    addStylusClone(data.id);
+	});
+
+	// state.stylusManager.on('pose', data => {
+	// 	const id = data.id;
+
+	// 	if ( !stylusModelMap.has( id ) ) {
+	// 		console.error( '3D model for stylus has not been added yet: ' + data.id );
+	// 		return;
+	// 	}
+
+	// 	const stylus = stylusModelMap.get( id ).stylus;
+	// 	const shadow = stylusModelMap.get( id ).shadow;
+
+	// 	stylus.position.subVectors(data.position, state.stylusManager.origin.position);
+	// 	stylus.quaternion.copy(data.quaternion);
+
+	// 	shadow.position.x = data.tip.x;// - state.stylusManager.origin.position.x;
+	// 	shadow.position.z = data.tip.z;// - state.stylusManager.origin.position.z;
+
+	// 	toolMan.onStylusPose(data);
+		
+	// 	renderer.render(scene, camera);
+	// });
+
+  state.stylus.addEventListener('pose', detail => {
+    const data = detail.data;
+    const id = data.id;
 
 		if ( !stylusModelMap.has( id ) ) {
 			console.error( '3D model for stylus has not been added yet: ' + data.id );
@@ -171,23 +196,42 @@ function setupStylusManager( state ) {
 		toolMan.onStylusPose(data);
 		
 		renderer.render(scene, camera);
-	});
+  });
 		
-	state.stylusManager.on('click', data => {
-		if ( data.buttonName == 'menu' ) {
+	// state.stylusManager.on('click', data => {
+	// 	if ( data.buttonName == 'menu' ) {
+	// 		state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
+	// 	}
+
+	// 	toolMan.onStylusClick(data);
+	// });
+
+  state.stylus.addEventListener('click', detail => {
+    const data = detail.data;
+
+    if ( data.buttonName == 'menu' ) {
 			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
 		}
 
 		toolMan.onStylusClick(data);
-	});
+  });
 		
-	state.stylusManager.on('pressed', data => {
-		toolMan.onStylusPressed(data);
-	});
+	// state.stylusManager.on('pressed', data => {
+	// 	toolMan.onStylusPressed(data);
+	// });
+
+  state.stylus.addEventListener('pressed', detail => {
+    const data = detail.data;
+    toolMan.onStylusPressed(data);
+  });
 		
-	state.stylusManager.on('released', data => {
-		toolMan.onStylusReleased(data);
-	});
+	// state.stylusManager.on('released', data => {
+	// 	toolMan.onStylusReleased(data);
+	// });
+
+  state.stylus.addEventListener('released', detail =>{
+    toolMan.onStylusReleased(data);
+  });
 }
 
 function addStylusClone( id ) 
