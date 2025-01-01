@@ -15,6 +15,7 @@ import { ToolManager, Tools } from 'tools/manager.js';
 
 // UI Widgets
 import { ToolBar } from 'widgets/toolbar.js';
+import { Modal_StylusWaiting } from 'modals/Modal_StylusWaiting.js';
 
 let group, camera, scene, renderer;
 
@@ -32,6 +33,7 @@ workspace.name = 'Workspace';
 // Set up tool manager
 const toolMan = new ToolManager(workspace); // Manages tool activation/deactivation
 const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool man
+const stylusWaitingModal = new Modal_StylusWaiting('modal_stylus_waiting');
 
 // FPS Control Variables
 const clock = new THREE.Clock();
@@ -51,6 +53,9 @@ modelLoader.on( 'loaded', ( data ) => {
 	
 	// TODO: store it here as root of app instead of state
 	state.stylus = new TundraStylus();
+
+	// Now when we have a stylus, modals can add listeners to it
+	stylusWaitingModal.addListeners(state.stylus);
 
 	// 2. Set up stylus manager, including listeners
 	// Does the stylus manager really need access to state?
