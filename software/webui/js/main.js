@@ -142,38 +142,10 @@ function setupScene() {
 }
 
 function setupStylus( state ) {
-
-	// Handle stylus manager events	
-	// state.stylus.on( 'new_stylus', data => {
-	// 	addStylusClone( data.id );
-	// }); 
-
 	state.stylus.addEventListener('new_stylus', event => {
     const data = event.detail;
     addStylusClone(data.id);
 	});
-
-	// state.stylusManager.on('pose', data => {
-	// 	const id = data.id;
-
-	// 	if ( !stylusModelMap.has( id ) ) {
-	// 		console.error( '3D model for stylus has not been added yet: ' + data.id );
-	// 		return;
-	// 	}
-
-	// 	const stylus = stylusModelMap.get( id ).stylus;
-	// 	const shadow = stylusModelMap.get( id ).shadow;
-
-	// 	stylus.position.subVectors(data.position, state.stylusManager.origin.position);
-	// 	stylus.quaternion.copy(data.quaternion);
-
-	// 	shadow.position.x = data.tip.x;// - state.stylusManager.origin.position.x;
-	// 	shadow.position.z = data.tip.z;// - state.stylusManager.origin.position.z;
-
-	// 	toolMan.onStylusPose(data);
-		
-	// 	renderer.render(scene, camera);
-	// });
 
   state.stylus.addEventListener('pose', (event) => {
     const data = event.detail;
@@ -198,14 +170,6 @@ function setupStylus( state ) {
 		renderer.render(scene, camera);
   });
 		
-	// state.stylusManager.on('click', data => {
-	// 	if ( data.buttonName == 'menu' ) {
-	// 		state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
-	// 	}
-
-	// 	toolMan.onStylusClick(data);
-	// });
-
   state.stylus.addEventListener('click', (event) => {
     const data = event.detail;
 
@@ -215,19 +179,11 @@ function setupStylus( state ) {
 
 		toolMan.onStylusClick(data);
   });
-		
-	// state.stylusManager.on('pressed', data => {
-	// 	toolMan.onStylusPressed(data);
-	// });
 
   state.stylus.addEventListener('pressed', (event) => {
     const data = event.detail;
     toolMan.onStylusPressed(data);
   });
-		
-	// state.stylusManager.on('released', data => {
-	// 	toolMan.onStylusReleased(data);
-	// });
 
   state.stylus.addEventListener('released', (event) => {
   	const data = event.detail;
@@ -235,8 +191,7 @@ function setupStylus( state ) {
   });
 }
 
-function addStylusClone( id ) 
-{
+function addStylusClone(id) {
 	if ( stylusModel == null ) {
 		console.error( 'Stylus model not loaded' );
 		return;

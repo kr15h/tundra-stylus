@@ -19,14 +19,14 @@ export class TundraStylus extends EventTarget {
 		this.connection = null;
 		this.devices = new Map();
 		// Modals should be handled externally based on events
-        //this.modalElement = document.getElementById('modal_stylus_waiting');
+    //this.modalElement = document.getElementById('modal_stylus_waiting');
 	}
 
 	connect(url) {
     this.url = url;
 		this.connection = new TundraStylus_Connection(this.url);
 
-        // Modals should be handled externally based on events
+    // Modals should be handled externally based on events
 		//this.modalElement.classList.remove( 'hidden' );
 		//this.on('new_stylus', ( e ) => {
 		//	this.modalElement.classList.add( 'hidden' );
@@ -79,13 +79,6 @@ export class TundraStylus extends EventTarget {
 			tipPosition.copy(stylus.tip.position);
 			tipPosition.sub(this.origin.position);
 
-			// this.emit('pose', { 
-			// 	id, 
-			// 	pose, 
-			// 	position: stylus.position, 
-			// 	quaternion: stylus.quaternion,
-			// 	tip: tipPosition 
-			// });
       this.dispatchEvent(new CustomEvent('pose', {detail: {
         id,
         pose,
@@ -108,7 +101,6 @@ export class TundraStylus extends EventTarget {
 
 					const event = state ? 'pressed' : 'released';
 					
-          //this.emit(event, { id, buttonName, position, tip: stylus.tip });
           this.dispatchEvent(new CustomEvent(event, {detail: {
             id,
             buttonName,
@@ -117,7 +109,6 @@ export class TundraStylus extends EventTarget {
           }}));
 					
           if (state) {
-            //this.emit('click', { id, buttonName, position, tip: stylus.tip });
             this.dispatchEvent(new CustomEvent('click', {detail: {
               id, 
               buttonName, 
@@ -140,25 +131,6 @@ export class TundraStylus extends EventTarget {
     }
 		return this.styluses.get(id);
 	}
-
-	// emit(event, data) {
-	// 	if (this.listeners[event]) {
-	// 		this.listeners[event].forEach(callback => callback(data));
-	// 	}
-	// }
-
-	// on(event, callback) {
-	// 	if (!this.listeners[event]) {
-	// 		this.listeners[event] = [];
-	// 	}
-	// 	this.listeners[event].push(callback);
-	// }
-
-	// off(event, callback) {
-	// 	if (this.listeners[event]) {
-	// 		this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-	// 	}
-	// }
 }
 
 class TundraStylus_Single {
