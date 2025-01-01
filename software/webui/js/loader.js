@@ -3,7 +3,7 @@
 
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { STYLUS_ZOFFSET } from 'stylus'; 
+import { STYLUS_ZOFFSET } from 'TundraStylus'; 
 
 export class StylusModelLoader {
 	constructor( path ) {

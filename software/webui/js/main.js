@@ -57,7 +57,7 @@ modelLoader.on( 'loaded', ( data ) => {
 	setupStylus( state );
 
 	// 4. Connect stylus manager and wait for incoming messages
-	state.stylus.connect();
+	state.stylus.connect('ws://localhost:8080');
 
 	// If this needs to set up listeners to things, we pass those things to it
 	StatusBar_Init();
@@ -148,8 +148,8 @@ function setupStylus( state ) {
 	// 	addStylusClone( data.id );
 	// }); 
 
-	state.stylus.addEventListener('new_stylus', detail => {
-    const data = detail.data;
+	state.stylus.addEventListener('new_stylus', event => {
+    const data = event.detail;
     addStylusClone(data.id);
 	});
 
@@ -175,8 +175,8 @@ function setupStylus( state ) {
 	// 	renderer.render(scene, camera);
 	// });
 
-  state.stylus.addEventListener('pose', detail => {
-    const data = detail.data;
+  state.stylus.addEventListener('pose', (event) => {
+    const data = event.detail;
     const id = data.id;
 
 		if ( !stylusModelMap.has( id ) ) {
@@ -187,11 +187,11 @@ function setupStylus( state ) {
 		const stylus = stylusModelMap.get( id ).stylus;
 		const shadow = stylusModelMap.get( id ).shadow;
 
-		stylus.position.subVectors(data.position, state.stylusManager.origin.position);
+		stylus.position.subVectors(data.position, state.stylus.origin.position);
 		stylus.quaternion.copy(data.quaternion);
 
-		shadow.position.x = data.tip.x;// - state.stylusManager.origin.position.x;
-		shadow.position.z = data.tip.z;// - state.stylusManager.origin.position.z;
+		shadow.position.x = data.tip.x;// - state.stylus.origin.position.x;
+		shadow.position.z = data.tip.z;// - state.stylus.origin.position.z;
 
 		toolMan.onStylusPose(data);
 		
@@ -206,11 +206,11 @@ function setupStylus( state ) {
 	// 	toolMan.onStylusClick(data);
 	// });
 
-  state.stylus.addEventListener('click', detail => {
-    const data = detail.data;
+  state.stylus.addEventListener('click', (event) => {
+    const data = event.detail;
 
     if ( data.buttonName == 'menu' ) {
-			state.stylusManager.setTipAsOrigin( state.stylusManager.getStylus(data.id) );
+			state.stylus.setTipAsOrigin( state.stylus.getStylus(data.id) );
 		}
 
 		toolMan.onStylusClick(data);
@@ -220,8 +220,8 @@ function setupStylus( state ) {
 	// 	toolMan.onStylusPressed(data);
 	// });
 
-  state.stylus.addEventListener('pressed', detail => {
-    const data = detail.data;
+  state.stylus.addEventListener('pressed', (event) => {
+    const data = event.detail;
     toolMan.onStylusPressed(data);
   });
 		
@@ -229,7 +229,8 @@ function setupStylus( state ) {
 	// 	toolMan.onStylusReleased(data);
 	// });
 
-  state.stylus.addEventListener('released', detail =>{
+  state.stylus.addEventListener('released', (event) => {
+  	const data = event.detail;
     toolMan.onStylusReleased(data);
   });
 }

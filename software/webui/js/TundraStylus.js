@@ -9,6 +9,8 @@ export const STYLUS_ZOFFSET = 0.015; // the model is a bit offset
 // sort of facade that provides a target for event listeners.
 export class TundraStylus extends EventTarget {
 	constructor() {
+		super();
+
 		this.styluses = new Map();
 		this.origin = {
 			position: new THREE.Vector3()
@@ -30,16 +32,16 @@ export class TundraStylus extends EventTarget {
 		//	this.modalElement.classList.add( 'hidden' );
 		//});
 
-		this.connection.addEventListener('message', (evt) => {
+		this.connection.addEventListener('message', (event) => {
 			try {
-				const messages = JSON.parse(evt.detail);
+				const messages = JSON.parse(event.detail);
 
 				// We are getting an array of possible multiple styluses
-				for (const msg of messages) {
-					this.handleWebSocketMessage(msg);
+				for (const message of messages) {
+					this.handleWebSocketMessage(message);
 				}
-			} catch (err) {
-				console.error(err);
+			} catch (error) {
+				console.error(error);
 			}
 		});
 
@@ -63,7 +65,7 @@ export class TundraStylus extends EventTarget {
 		}
 		
 		const stylus = this.styluses.get(id);
-		
+
 		if (pose) {
 			stylus.updatePose(pose);
 
@@ -89,7 +91,7 @@ export class TundraStylus extends EventTarget {
         pose,
         position: stylus.position,
         quaternion: stylus.quaternion,
-        tip: tip.position
+        tip: tipPosition
       }}));
 		}
 		
@@ -236,6 +238,7 @@ class TundraStylus_Single {
 class TundraStylus_Connection extends EventTarget {
 	constructor(url) {
 		super();
+
 		this.url = url;
 		this.socket = null;
 		this.isConnected = false;
