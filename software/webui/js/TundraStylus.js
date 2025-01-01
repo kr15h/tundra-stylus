@@ -18,19 +18,11 @@ export class TundraStylus extends EventTarget {
 		this.url = ''; // e.g. ws://localhost:8080/
 		this.connection = null;
 		this.devices = new Map();
-		// Modals should be handled externally based on events
-    //this.modalElement = document.getElementById('modal_stylus_waiting');
 	}
 
 	connect(url) {
     this.url = url;
 		this.connection = new TundraStylus_Connection(this.url);
-
-    // Modals should be handled externally based on events
-		//this.modalElement.classList.remove( 'hidden' );
-		//this.on('new_stylus', ( e ) => {
-		//	this.modalElement.classList.add( 'hidden' );
-		//});
 
 		this.connection.addEventListener('message', (event) => {
 			try {
@@ -49,6 +41,7 @@ export class TundraStylus extends EventTarget {
 	}
 
 	handleWebSocketMessage(message) {
+		// Below is what we should be getting
 		// { "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
 		const {id, buttons, pose} = message;
 		let firstStylus = false;
@@ -57,7 +50,6 @@ export class TundraStylus extends EventTarget {
 			this.styluses.set(id, new TundraStylus_Single(id));
 
 			// We want to notify the rest of the app that a new stylus has been added
-      //this.emit('new_stylus', { id });
       this.dispatchEvent(new CustomEvent('new_stylus', {detail: {id}}));
 
 			// If this is the first stylus to be added, set origin based on it
