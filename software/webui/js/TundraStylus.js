@@ -67,16 +67,14 @@ export class TundraStylus extends EventTarget {
 				this.setTipAsOrigin(stylus);
 			}
 
-			const tipPosition = new THREE.Vector3();
-			tipPosition.copy(stylus.tip.position);
-			tipPosition.sub(this.origin.position);
+			// Tip position is relative to origin
+			const position = this.getRelativePosition(stylus.position);
 
+			// Tracker pose data remain absolute
       this.dispatchEvent(new CustomEvent('pose', {detail: {
         id,
-        pose,
-        position: stylus.position,
-        quaternion: stylus.quaternion,
-        tip: tipPosition
+        position,
+        tracker: stylus.tracker
       }}));
 		}
 		
@@ -86,18 +84,14 @@ export class TundraStylus extends EventTarget {
 				stylus.updateButtonState(buttonName, state);
 				
 				if (state !== previousState) {
-					// We want to take origin offset into account when passing on the tip pos
-					const position = new THREE.Vector3();
-					position.copy( stylus.tip.position );
-					position.sub( this.origin.position );
-
+					const position = this.getRelativePosition(stylus.position);
 					const event = state ? 'pressed' : 'released';
 					
           this.dispatchEvent(new CustomEvent(event, {detail: {
             id,
             buttonName,
             position, 
-            tip: stylus.tip
+            tracker: stylus.tracker
           }}));
 					
           if (state) {
@@ -105,8 +99,8 @@ export class TundraStylus extends EventTarget {
               id, 
               buttonName, 
               position,
-              tip: stylus.tip
-            }}));
+              tracker: stylus.tracker
+            }})); 
           }
 				}
 			}
@@ -114,7 +108,7 @@ export class TundraStylus extends EventTarget {
 	}
 
 	setTipAsOrigin(stylus) {
-		this.origin.position.copy(stylus.tip.position);
+		this.origin.position.copy(stylus.position);
 	}
 
 	getStylus(id) {
@@ -123,28 +117,39 @@ export class TundraStylus extends EventTarget {
     }
 		return this.styluses.get(id);
 	}
+
+	getRelativePosition(positionAbsolute) {
+		const positionRelative = new THREE.Vector3();
+		positionRelative.copy(positionAbsolute);
+		positionRelative.sub(this.origin.position);
+		return positionRelative;
+	}
 }
 
 class TundraStylus_Single {
 	constructor(id) {
 		this.id = id;
-		this.pose = [[0,0,0,0], [0,0,0,0], [0,0,0,0]];
+
+		this.tracker = {
+			pose: [[0,0,0,0], [0,0,0,0], [0,0,0,0]],
+			position: new THREE.Vector3(),
+			quaternion: new THREE.Quaternion()
+		};
+
+		// This is the stylus tip position
 		this.position = new THREE.Vector3();
-		this.quaternion = new THREE.Quaternion();
+
 		this.buttons = {
 			trig: false,
 			grip: false,
 			tpad: false,
 			menu: false,
 		};
-		this.tip = {
-			position: new THREE.Vector3()
-		}
 	}
 
 	updatePose(pose) {
 		// Save raw pose of styus
-		this.pose = pose;
+		this.tracker.pose = pose;
 
 		// We need to change the SteamVR pose 3x4 matrix to threejs 4x4
 		// to be able to take advantage of THREE utilities, to extract
@@ -160,20 +165,19 @@ class TundraStylus_Single {
 		// Decompose the matrix into position, quaternion (rotation), and scale
 		const position = new THREE.Vector3();
 		const quaternion = new THREE.Quaternion();
-		const scale = new THREE.Vector3(); // We can ignore this, but it is needed here
-		matrix.decompose(position, quaternion, scale);
+		matrix.decompose(position, quaternion, new THREE.Vector3()); // Ignoring scale
 
-		this.position.copy(position);
-		this.quaternion.copy(quaternion);
+		this.tracker.position.copy(position);
+		this.tracker.quaternion.copy(quaternion);
 
 		const offset = Math.sqrt( Math.pow(STYLUS_TIP_DISTANCE, 2) / 2 );
 		const tipPosition = this.calculateTipPosition(
-			this.position, 
-			this.quaternion, 
+			this.tracker.position, 
+			this.tracker.quaternion, 
 			STYLUS_TIP_OFFSET, -STYLUS_TIP_OFFSET, STYLUS_ZOFFSET
 		);
 
-		this.tip.position.copy(tipPosition);
+		this.position.copy(tipPosition);
 	}
 
 	updateButtonState(buttonName, state) {

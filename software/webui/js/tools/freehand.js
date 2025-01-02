@@ -102,7 +102,7 @@ export class FreehandTool {
 		}
 	}
 
-	onStylusPose(pose) {
+	onStylusPose(data) {
 		if (!this.trigPressed) {
 			return;
 		}
@@ -111,7 +111,7 @@ export class FreehandTool {
 			return;
 		}
 
-		const newPoint = [pose.tip.x, pose.tip.y, pose.tip.z];
+		const newPoint = [data.position.x, data.position.y, data.position.z];
 		this.points = [...this.points, ...newPoint];
 
 		const newGeometry = new LineGeometry();

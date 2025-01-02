@@ -164,11 +164,11 @@ function setupStylus( state ) {
 		const stylus = stylusModelMap.get( id ).stylus;
 		const shadow = stylusModelMap.get( id ).shadow;
 
-		stylus.position.subVectors(data.position, state.stylus.origin.position);
-		stylus.quaternion.copy(data.quaternion);
+		stylus.position.subVectors(data.tracker.position, state.stylus.origin.position);
+		stylus.quaternion.copy(data.tracker.quaternion);
 
-		shadow.position.x = data.tip.x;// - state.stylus.origin.position.x;
-		shadow.position.z = data.tip.z;// - state.stylus.origin.position.z;
+		shadow.position.x = data.position.x;
+		shadow.position.z = data.position.z;
 
 		toolMan.onStylusPose(data);
 		
