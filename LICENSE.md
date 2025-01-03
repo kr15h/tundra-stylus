@@ -1,7 +1,7 @@
 # LICENSE
 
 **Project Name**: Tundra Stylus   
-**Version**: v0.1.2  
+**Version**: v0.2.0  
 **Author**: Krisjanis Rijnieks
 
 This repository contains multiple components, each licensed under different terms. Please review the specific license for each component below.
