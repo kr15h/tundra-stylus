@@ -79,8 +79,7 @@ export class FreehandTool {
 			return;
 		}
 
-		const p = e.position;
-		this.points = [p.x, p.y, p.z];
+		this.points = [e.positionRelative.x, e.positionRelative.y, e.positionRelative.z];
 		const lineGeometry = new LineGeometry();
 		lineGeometry.setPositions(this.points);
 
@@ -111,7 +110,7 @@ export class FreehandTool {
 			return;
 		}
 
-		const newPoint = [data.position.x, data.position.y, data.position.z];
+		const newPoint = [data.positionRelative.x, data.positionRelative.y, data.positionRelative.z];
 		this.points = [...this.points, ...newPoint];
 
 		const newGeometry = new LineGeometry();

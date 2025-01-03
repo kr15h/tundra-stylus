@@ -12,9 +12,6 @@ export class TundraStylus extends EventTarget {
 		super();
 
 		this.styluses = new Map();
-		this.origin = {
-			position: new THREE.Vector3()
-		};
 		this.url = ''; // e.g. ws://localhost:8080/
 		this.connection = null;
 		this.devices = new Map();
@@ -44,16 +41,12 @@ export class TundraStylus extends EventTarget {
 		// Below is what we should be getting
 		// { "id":<tracker_id>, "buttons":{"trig":<true|false>,"grip":...} "pose":<3x4_pose_array> }
 		const {id, buttons, pose} = message;
-		let firstStylus = false;
 
 		if (!this.styluses.has(id)) {
 			this.styluses.set(id, new TundraStylus_Single(id));
 
 			// We want to notify the rest of the app that a new stylus has been added
       this.dispatchEvent(new CustomEvent('new_stylus', {detail: {id}}));
-
-			// If this is the first stylus to be added, set origin based on it
-			if (this.styluses.size == 1) firstStylus = true;
 		}
 		
 		const stylus = this.styluses.get(id);
@@ -61,19 +54,10 @@ export class TundraStylus extends EventTarget {
 		if (pose) {
 			stylus.updatePose(pose);
 
-			// If this is first stylus just added, 
-			// set the origin based on where its tip is
-			if (firstStylus) {
-				this.setTipAsOrigin(stylus);
-			}
-
-			// Tip position is relative to origin
-			const position = this.getRelativePosition(stylus.position);
-
 			// Tracker pose data remain absolute
       this.dispatchEvent(new CustomEvent('pose', {detail: {
         id,
-        position,
+        position: stylus.position,
         tracker: stylus.tracker
       }}));
 		}
@@ -84,24 +68,23 @@ export class TundraStylus extends EventTarget {
 				stylus.updateButtonState(buttonName, state);
 				
 				if (state !== previousState) {
-					const position = this.getRelativePosition(stylus.position);
 					const event = state ? 'pressed' : 'released';
 					
-          this.dispatchEvent(new CustomEvent(event, {detail: {
-            id,
-            buttonName,
-            position, 
-            tracker: stylus.tracker
-          }}));
-					
-          if (state) {
+					if (state) {
             this.dispatchEvent(new CustomEvent('click', {detail: {
               id, 
               buttonName, 
-              position,
+              position: stylus.position,
               tracker: stylus.tracker
             }})); 
           }
+
+          this.dispatchEvent(new CustomEvent(event, {detail: {
+            id,
+            buttonName,
+            position: stylus.position, 
+            tracker: stylus.tracker
+          }}));
 				}
 			}
 		}
@@ -116,13 +99,6 @@ export class TundraStylus extends EventTarget {
 			console.error('No stylus with id found:', id);
     }
 		return this.styluses.get(id);
-	}
-
-	getRelativePosition(positionAbsolute) {
-		const positionRelative = new THREE.Vector3();
-		positionRelative.copy(positionAbsolute);
-		positionRelative.sub(this.origin.position);
-		return positionRelative;
 	}
 }
 

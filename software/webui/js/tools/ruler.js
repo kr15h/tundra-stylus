@@ -51,8 +51,7 @@ export class RulerTool {
 
 	onStylusClick(e) {
 		if ( e.buttonName == 'trig' ) {
-			const position = e.position;
-			this.setPoint( position );	
+			this.setPoint( e.positionRelative );	
 		}
 	}
 
