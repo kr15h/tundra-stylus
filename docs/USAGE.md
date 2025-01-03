@@ -82,3 +82,63 @@ Open the browser and go to the address you configure your local webserver with. 
 3. Use the Trigger button to place points in the case of the Ruler tool or start drawing a line with the Freehand tool.
 
 ![Tundra Stylus Working](../media/hello.gif)
+
+## Creating your Own App
+
+To build your own JavaScript application, you can reuse the `TundaStylus` class that can be found in [software/webui/js](../software/webui/js/TundraStylus.js). It follows a three step initialization.
+
+```
+// Step 1: Create sylus manager instance
+const stylus = new TundraStylus();
+
+// Step 2: Add listeners
+stylus.addEventListener('new_stylus', event => { ... });
+stylus.addEventListener('pose',       event => { ... });
+stylus.addEventListener('click',      event => { ... });
+stylus.addEventListener('pressed',    event => { ... });
+stylus.addEventListener('released',   event => { ... });
+
+// Step 3: Connect to WebSocket host
+stylus.connect('ws://localhost:8080');
+```
+
+The `TundraStylus` class extends the built-in [CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent) class. It carries data that can be accessed via `event.detail` member variable.
+
+THe `TundraStylus` can capture and forward data of multiple styluses. As soon as first message with a specific controller ID is received, a `new_stylus` event is emited. 
+
+The `new_stylus` event carries the ID of the newly added stylus.
+
+```
+{
+    id: 1
+}
+```
+
+The `pose` event carries the raw pose of the tracker, as well as the calculated tip position as `event.detail.position`.
+
+```
+{
+    id,
+    position,
+    tracker: {
+        pose,
+        position,
+        quaternion
+    }
+}
+```
+
+The `click`, `pressed` and `released` events also have a `buttonName` variable that can be one of four values: `trig`, `menu`, `grip` or `tpad`. 
+
+```
+{
+    id,
+    buttonName: "trig | menu | grip | tpad",
+    position,
+    tracker: {
+        pose,
+        position,
+        quaternion
+    }
+}
+```
