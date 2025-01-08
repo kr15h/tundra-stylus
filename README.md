@@ -4,6 +4,8 @@ Tundra Tracker stylus baseplate for 3D positional tracking. This repository cont
 
 https://github.com/kr15h/tundra-stylus/blob/main/media/hello.mp4
 
+Press play to see the video.
+
 ## Introduction
 
 Vive Lighthouse system is great! The main use of it is VR, but what about drawing or painting in space? Stylus input is the natural choice of many, but there is no VIVE Lighthouse Stylus available. Logitech almost launched VR Ink, but then decided not to. What to do?
