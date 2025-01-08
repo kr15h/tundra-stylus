@@ -57,7 +57,7 @@ Then open the test controller panel and test the controller.
 
 The circles should appear as filled as soon as you press buttons on the stylus.
 
-![SteamVR Button Test](../media/steamvr_button_test.gif)
+https://github.com/user-attachments/assets/c7b850f1-a4ad-4b7b-adab-196a3f2940df
 
 On Windows, you should also be able to see the Tundra Tracker floating in space via the VR View.
 
@@ -81,7 +81,7 @@ Open the browser and go to the address you configure your local webserver with. 
     2. Freehand tool
 3. Use the Trigger button to place points in the case of the Ruler tool or start drawing a line with the Freehand tool.
 
-![Tundra Stylus Working](../media/hello.gif)
+https://github.com/user-attachments/assets/fd64adfa-e3c0-4b6a-a956-ca7f262a2909
 
 ## Creating your Own App
 
