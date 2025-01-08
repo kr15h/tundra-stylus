@@ -2,7 +2,7 @@
 
 Tundra Tracker stylus baseplate for 3D positional tracking. This repository contains design files and test application source code. It currently works with [SteamVR](https://store.steampowered.com/app/250820/SteamVR/), but [libsurvive](https://github.com/cntools/libsurvive) support is on its way.
 
-./media/hello.mp4
+https://github.com/kr15h/tundra-stylus/blob/main/media/hello.mp4
 
 ## Introduction
 
