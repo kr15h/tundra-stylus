@@ -52,4 +52,8 @@ As for the parameters, the following are most important.
 
 Do not forget to order a SMT-Stencil if you want to use solder paste and reflow soldering. 
 
+Below is a photo of how the board should look like when ordered via JLCPCB.
+
+![Photo of Tundra Stylus PCB from JLCPCB](../media/pcb-from-jlcpcb.jpg)
+
 
