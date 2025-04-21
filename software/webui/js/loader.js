@@ -3,7 +3,7 @@
 
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { STYLUS_ZOFFSET } from 'TundraStylus'; 
+import { STYLUS_ZOFFSET } from 'TundraStylus';
 
 export class StylusModelLoader {
 	constructor( path ) {
@@ -14,11 +14,12 @@ export class StylusModelLoader {
 			y: 0,
 			z: STYLUS_ZOFFSET * 1000 // 7 mm
 		}
-		this.path = 'assets/models/tundrastylus.obj';
+		this.path = 'assets/models/TundraStylus.obj';
 		this.colors = {
-			'Buttons Final': 0x000000,
-			'Base Final': 0xffffff,
-			'Cover Final': 0xbababa
+			'Tracker': 0x000000,
+			'Stylus_Buttons': 0x000000,
+			'Stylus_Base': 0xffffff,
+			'Stylus_Cover': 0xffffff
 		}
 		this.model = null;
 		this.modalElement = document.getElementById( 'modal_loading' );
@@ -26,8 +27,8 @@ export class StylusModelLoader {
 
 	load() {
 		const loader = new OBJLoader();
-		loader.load( 
-			this.path, 
+		loader.load(
+			this.path,
 			(obj) => {
 				this.model = obj;
 				this.model.scale.setScalar( this.scale );
@@ -37,13 +38,13 @@ export class StylusModelLoader {
 					if ( child.isMesh ) {
 						// Shift origin
 						const geometry = child.geometry;
-						geometry.translate(this.offset.x, this.offset.y, this.offset.z); 
+						geometry.translate(this.offset.x, this.offset.y, this.offset.z);
 
 						for (const key in this.colors) {
 							if ( this.colors.hasOwnProperty(key) ) {
 								if ( child.name == key ) {
-									child.material = new THREE.MeshStandardMaterial({ 
-										color: this.colors[key] 
+									child.material = new THREE.MeshStandardMaterial({
+										color: this.colors[key]
 									});
 								}
 							}
@@ -52,23 +53,23 @@ export class StylusModelLoader {
 				});
 
 				// Add helper axes
-				const axesHelper = new THREE.AxesHelper(50); 
-				this.model.add(axesHelper);	
-				
+				const axesHelper = new THREE.AxesHelper(50);
+				this.model.add(axesHelper);
+
 				this.modalElement.classList.add( 'hidden' );
-				
+
 				this.emit('loaded', { model: this.model });
-			}, 
+			},
 			(xhr) => {
 				if ( xhr.lengthComputable ) {
 					const percentComplete = xhr.loaded / xhr.total * 100;
 					const progressBar = this.modalElement.getElementsByTagName( 'progress' )[0];
 					progressBar.value = percentComplete.toFixed( 2 );
 				}
-			}, 
+			},
 			(err) => {
 				console.error( 'Error loading model: ' + err );
-			} 
+			}
 		);
 
 		this.modalElement.classList.remove( 'hidden' );
