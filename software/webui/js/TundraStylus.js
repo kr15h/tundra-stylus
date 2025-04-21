@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Stylus tip distance from tracker origin
 const STYLUS_TIP_DISTANCE = 0.17744; // in meters
-export const STYLUS_ZOFFSET = 0.015; // the model is a bit offset
+export const STYLUS_ZOFFSET = 0.0115; // the model is a bit offset
 
 // Here TundraStylus is rather a TundraStylus manager,
 // sort of facade that provides a target for event listeners.

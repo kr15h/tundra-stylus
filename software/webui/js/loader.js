@@ -12,14 +12,14 @@ export class StylusModelLoader {
 		this.offset = {
 			x: 0,
 			y: 0,
-			z: STYLUS_ZOFFSET * 1000 // 7 mm
+			z: -STYLUS_ZOFFSET * 1000 // 7 mm
 		}
 		this.path = 'assets/models/TundraStylus.obj';
 		this.colors = {
-			'Tracker': 0x000000,
-			'Stylus_Buttons': 0x000000,
-			'Stylus_Base': 0xffffff,
-			'Stylus_Cover': 0xffffff
+			'Tracker_Body': 0x000000,
+			'Stylus_Buttons_Body': 0x000000,
+			'Stylus_Base_Body': 0xffffff,
+			'Stylus_Cover_Body': 0xffffff
 		}
 		this.model = null;
 		this.modalElement = document.getElementById( 'modal_loading' );
@@ -33,9 +33,14 @@ export class StylusModelLoader {
 				this.model = obj;
 				this.model.scale.setScalar( this.scale );
 
+				this.model.rotation.x = Math.PI;
+				this.model.rotation.z = Math.PI;
+
 				// Assign colors
 				this.model.traverse( ( child ) => {
 					if ( child.isMesh ) {
+						console.log(child.name);
+						
 						// Shift origin
 						const geometry = child.geometry;
 						geometry.translate(this.offset.x, this.offset.y, this.offset.z);
@@ -55,10 +60,13 @@ export class StylusModelLoader {
 				// Add helper axes
 				const axesHelper = new THREE.AxesHelper(50);
 				this.model.add(axesHelper);
+				
+				const group = new THREE.Group();
+				group.add(this.model);
 
 				this.modalElement.classList.add( 'hidden' );
 
-				this.emit('loaded', { model: this.model });
+				this.emit('loaded', { model: group });
 			},
 			(xhr) => {
 				if ( xhr.lengthComputable ) {
