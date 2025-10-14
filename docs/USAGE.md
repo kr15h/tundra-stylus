@@ -65,11 +65,15 @@ On Windows, you should also be able to see the Tundra Tracker floating in space 
 
 Now, that SteamVR can recognize the tracker, we can move on to application-specific adventures. The repository includes middleware, a proxy application that uses OpenVR API to communicate with SteamVR and extracts pose information that can then be passed on to any application on your computer. 
 
-### Proxy
+### Middleware
 
-You can find the SteamVR compatible OpenVR proxy in the [software/steamvr](../software/steamvr/) directory. There is a README file that explains prerequisites and launching sequence. 
+To get realtime tracker data and into the browser-based app (described below), middleware is needed. It connects to the lighthouse API of your choice and exposes tracker pose data via WebSocket API.
 
-### Web UI
+You can find the SteamVR compatible OpenVR middleware in the [software/steamvr](../software/steamvr/) directory. There is a README file that explains prerequisites and launching sequence. 
+
+Libsurvive and OpenXR-based middleware applications are underway.
+
+### Browser-Based App
 
 Once you get it to run, proceed to the Web UI. It is build using threejs 3D library and JavaScript modules. It requires to be launched via a local webserver. Instructions can be found in the [software/webui](../software/webui/) directory.
 
