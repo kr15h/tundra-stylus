@@ -20,6 +20,9 @@ fps = 60.0
 sleep_time = 1.0 / fps
 verbose = False
 
+# store button state
+button_state = {} # buttons[ id, states:{ 'trig':0|1, 'grip':0|1, 'tpad':0|1, 'menu':0|1 } ]
+
 def initialize_vr_system():
 	"""Initialize the VR system and return the VR system handle."""
 	openvr.init(openvr.VRApplication_Other)
@@ -27,12 +30,16 @@ def initialize_vr_system():
 	return vr_system
 
 def get_active_trackers(vr_system):
+	global button_state
 	tracker_data = []
+	
 	for device_index in range(openvr.k_unMaxTrackedDeviceCount):
+		
 		# Check if the device is tracked
 		if vr_system.isTrackedDeviceConnected(device_index):
 			device_class = vr_system.getTrackedDeviceClass(device_index)
 			if device_class == openvr.TrackedDeviceClass_GenericTracker or openvr.TrackedDeviceClass_Controller:
+				
 				# Get device pose
 				# TrackingUniverseStanding: absolute coordinate system
 				# TrackingUniverseSeated:   relative coordinate system (can be reset using IVRSystem::ResetSeatedZeroPose)
@@ -48,29 +55,44 @@ def get_active_trackers(vr_system):
 						continue # there are cases when the pose is empty. null hmd?
 
 					buttons_pressed = state.ulButtonPressed
-					buttons = {
-						"trig": bool(buttons_pressed & (1 << 33)),
-						"grip": bool(buttons_pressed & (1 << 2)),
-						"tpad": bool(buttons_pressed & (1 << 32)),
-						"menu": bool(buttons_pressed & (1 << 1))
-					}
+					incoming_button_state = {
+						'trig': bool(buttons_pressed & (1 << 33)),
+						'grip': bool(buttons_pressed & (1 << 2)),
+						'tpad': bool(buttons_pressed & (1 << 32)),
+						'menu': bool(buttons_pressed & (1 << 1))
+						}
+
+					# get stored button states and compare with incoming
+					if device_index in button_state:
+						current_button_state = button_state[device_index]
+						for k, v in current_button_state.items():
+							if incoming_button_state[k] != v:
+								tracker_data.append({
+									'id': device_index,
+									'button': k,
+									'state': incoming_button_state[k] 
+									})
+
+					# assign incoming button state as new state
+					button_state[device_index] = incoming_button_state
 					
+					# send pose data
 					tracker_data.append({
-						"id": device_index,
-						"buttons": buttons,
-						"pose": (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
+						'id': device_index,
+						'buttons': incoming_button_state,
+						'pose': (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
 									(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
 									(new_pose[2][0], new_pose[2][1], new_pose[2][2], new_pose[2][3])) 
-					})
+						})
 	return tracker_data
 
 def main():
-	parser = argparse.ArgumentParser(description="Tundra Stylus SteamVR OpenVR proxy")
+	parser = argparse.ArgumentParser(description='Tundra Stylus SteamVR OpenVR middleware')
 	parser.add_argument(
-		"-v", "--verbose", 
-		action="store_true",  # Makes this a flag (True if set, False otherwise)
-		help="Enable verbose output"
-	)
+		'-v', '--verbose', 
+		action='store_true',  # Makes this a flag (True if set, False otherwise)
+		help='Enable verbose output' 
+		)
 
 	args = parser.parse_args()
 	verbose = args.verbose
@@ -79,7 +101,7 @@ def main():
 
 	try:
 		if verbose:
-			print("Fetching tracker coordinates continuously (Press Ctrl+C to stop)...")
+			print('Fetching tracker coordinates continuously (Press Ctrl+C to stop)...')
 		while True:
 			tracker_data = get_active_trackers(vr_system)
 			
@@ -92,14 +114,14 @@ def main():
 					stdout.flush()
 			else:
 				if verbose:
-					print("No active trackers detected.")
+					print('No active trackers detected.')
 			
 			time.sleep(sleep_time)  # Adjust the interval as needed
 	except KeyboardInterrupt:
 		if verbose:
-			print("\nStopped by user.")
+			print('\nStopped by user.')
 	finally:
 		openvr.shutdown()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()
