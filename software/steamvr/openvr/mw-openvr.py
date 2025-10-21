@@ -69,6 +69,7 @@ def get_active_trackers(vr_system):
 							if incoming_button_state[k] != v:
 								tracker_data.append({
 									'id': device_index,
+									'type': 'button',  
 									'button': k,
 									'state': incoming_button_state[k] 
 									})
@@ -79,6 +80,7 @@ def get_active_trackers(vr_system):
 					# send pose data
 					tracker_data.append({
 						'id': device_index,
+						'type': 'pose',
 						'buttons': incoming_button_state,
 						'pose': (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
 									(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
