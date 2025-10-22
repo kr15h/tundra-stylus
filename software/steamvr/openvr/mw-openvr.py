@@ -46,7 +46,7 @@ def get_active_trackers(vr_system):
 
 				success, state, pose = vr_system.getControllerStateWithPose(
 					openvr.TrackingUniverseStanding, device_index
-				)
+					)
 
 				if success and state and pose.bPoseIsValid:
 					new_pose = pose.mDeviceToAbsoluteTracking
@@ -59,8 +59,12 @@ def get_active_trackers(vr_system):
 						'trig': bool(buttons_pressed & (1 << 33)),
 						'grip': bool(buttons_pressed & (1 << 2)),
 						'tpad': bool(buttons_pressed & (1 << 32)),
-						'menu': bool(buttons_pressed & (1 << 1))
+						'menu': bool(buttons_pressed & (1 << 1)) 
 						}
+
+					incoming_pose = (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
+							 			(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
+										(new_pose[2][0], new_pose[2][1], new_pose[2][2], new_pose[2][3]))
 
 					# get stored button states and compare with incoming
 					if device_index in button_state:
@@ -71,20 +75,18 @@ def get_active_trackers(vr_system):
 									'id': device_index,
 									'type': 'button',  
 									'button': k,
-									'state': incoming_button_state[k] 
+									'state': incoming_button_state[k], 
+									'pose': incoming_pose 
 									})
 
 					# assign incoming button state as new state
 					button_state[device_index] = incoming_button_state
 					
-					# send pose data
+					# send pose data continously
 					tracker_data.append({
 						'id': device_index,
 						'type': 'pose',
-						'buttons': incoming_button_state,
-						'pose': (	(new_pose[0][0], new_pose[0][1], new_pose[0][2], new_pose[0][3]), 
-									(new_pose[1][0], new_pose[1][1], new_pose[1][2], new_pose[1][3]), 
-									(new_pose[2][0], new_pose[2][1], new_pose[2][2], new_pose[2][3])) 
+						'pose': incoming_pose 
 						})
 	return tracker_data
 
@@ -108,12 +110,9 @@ def main():
 			tracker_data = get_active_trackers(vr_system)
 			
 			if tracker_data:
-				for tracker in tracker_data:
-					json_string = json.dumps(tracker_data, default=lambda o: float(o))
-					#json_data = json.dumps(data, default=lambda o: float(o))
-					#print(f"Tracker {tracker['device_index']} position: {tracker['position']}")
-					print(json_string)
-					stdout.flush()
+				json_string = json.dumps(tracker_data, default=lambda o: float(o))
+				print(json_string)
+				stdout.flush()
 			else:
 				if verbose:
 					print('No active trackers detected.')
