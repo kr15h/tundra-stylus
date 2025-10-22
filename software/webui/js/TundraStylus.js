@@ -54,37 +54,38 @@ export class TundraStylus extends EventTarget {
   }
 
   handlePose(message) {
-    const {id, type, buttons, pose} = message;
+    const {id, type, pose} = message;
     const stylus = this.styluses.get(id);
 
-    if (pose) {
-      stylus.updatePose(pose);
+    stylus.updatePose(pose);
 
-      // Tracker pose data remain absolute
-      this.dispatchEvent(new CustomEvent('pose', {detail: {
-        id,
-        position: stylus.position,
-        tracker: stylus.tracker
-      }}));
-    }
+    this.dispatchEvent(new CustomEvent('pose', {detail: {
+      id,
+      position: stylus.position,
+      tracker: stylus.tracker
+    }}));
   }
 
   handleButton(message) {
-    const {id, type, button, state} = message;
+    const {id, type, button, state, pose} = message;
     const stylus = this.styluses.get(id);
 
+    stylus.updatePose(pose);
+
+    // Dispatch pressed or released event based on incoming button state
     const event = state ? 'pressed' : 'released';
     this.dispatchEvent(new CustomEvent(event, {detail: {
       id,
-      button,
+      buttonName: button,
       position: stylus.position,
       tracker: stylus.tracker
     }}));
 
+    // Dispatch click event if button state is false or "released"
     if (!state) {
       this.dispatchEvent(new CustomEvent('click', {detail: {
         id,
-        button,
+        buttonName: button,
         position: stylus.position,
         tracker: stylus.tracker
       }}));
