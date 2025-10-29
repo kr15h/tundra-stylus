@@ -37,17 +37,22 @@ export class TundraStylus extends EventTarget {
   }
 
   handleWebSocketMessage(message) {
-    const {id, type} = message;
+    const {id, type, sys} = message;
 
     // Add new stylus if id is new
     if (!this.styluses.has(id)) {
+      console.log('Adding new stylus with id', id);
       this.styluses.set(id, new TundraStylus_Single(id));
       this.dispatchEvent(new CustomEvent('new_stylus', {detail: {id}}));
     }
 
     // Forward message to handlers based on type
     if (type == 'pose') {
-      this.handlePose(message);
+      if (sys == 'libsurvive') {
+        this.handlePoseLibsurvive(message)
+      } else {
+        this.handlePose(message);
+      }
     } else if (type == 'button') {
       this.handleButton(message);
     }   
@@ -58,6 +63,19 @@ export class TundraStylus extends EventTarget {
     const stylus = this.styluses.get(id);
 
     stylus.updatePose(pose);
+
+    this.dispatchEvent(new CustomEvent('pose', {detail: {
+      id,
+      position: stylus.position,
+      tracker: stylus.tracker
+    }}));
+  }
+
+  handlePoseLibsurvive(message) {
+    const {id, pos, rot} = message;
+    const stylus = this.styluses.get(id);
+
+    stylus.updatePoseLibsurvive(pos, rot); 
 
     this.dispatchEvent(new CustomEvent('pose', {detail: {
       id,
@@ -147,6 +165,29 @@ class TundraStylus_Single {
 
     this.tracker.position.copy(position);
     this.tracker.quaternion.copy(quaternion);
+
+    const offset = Math.sqrt( Math.pow(STYLUS_TIP_DISTANCE, 2) / 2 );
+    const tipPosition = this.calculateTipPosition(
+      this.tracker.position,
+      this.tracker.quaternion,
+      offset, -offset, STYLUS_ZOFFSET
+    );
+
+    this.position.copy(tipPosition);
+  }
+
+  updatePoseLibsurvive(pos, rot) {
+    const p = new THREE.Vector3();
+    p.set(pos[0], pos[1], pos[2]);
+
+    const q = new THREE.Quaternion();
+    q.set(rot[0], rot[1], rot[2], 1.0);
+    //q.normalize();
+
+    console.log(p, q);
+
+    this.tracker.position.copy(p);
+    this.tracker.quaternion.copy(q);
 
     const offset = Math.sqrt( Math.pow(STYLUS_TIP_DISTANCE, 2) / 2 );
     const tipPosition = this.calculateTipPosition(
