@@ -1,4 +1,4 @@
-import { Tools } from 'tools/manager.js';	
+import { Tools } from 'tools/manager.js';
 
 export class ViewOptions {
 	constructor(calibrateTool) {
@@ -26,43 +26,44 @@ export class ViewOptions {
 				this.calibrateButton = button;
 
 				this.calibrateButton.addEventListener('click', () => {
-  					if (!this.pvWindow) return;
-  				
+					if (!this.pvWindow) return;
+
 					this.pvWindow.postMessage({ type: 'calibration-start' }, '*');
-  					this.pvWindow.postMessage({ type: 'calibration-show', index: 0 }, '*');
+					this.pvWindow.postMessage({ type: 'calibration-show', index: 0 }, '*');
 				});
 			}
-		} 
+		}
 
 		this.calibrateTool.addEventListener('calibrationComplete', (e) => {
-  			const fourPoints = e.detail;
-  			console.log("Got 4 points:", fourPoints);
+			const fourPoints = e.detail;
+			console.log("Got points:", fourPoints);
 
 			// Forward four points to Projected View window if it exists
 			if (this.pvWindow) {
 				this.pvWindow.postMessage({
-  					type: 'calibration',
-  					points: fourPoints
+					type: 'calibration',
+					points: fourPoints
 				}, '*');
 			}
 		});
 
 		this.calibrateTool.addEventListener('calibrationPoint', (e) => {
-  			if (!this.pvWindow) return;
+			if (!this.pvWindow) return;
 
-  			const { index, point } = e.detail;
+			const { index, point } = e.detail;
 
-  			// Send the world-space point (PV will use it)
-  			this.pvWindow.postMessage({
-    			type: 'calibration-world-point',
-    			index,
-    			point
-  			}, '*');
+			// Send the world-space point (PV will use it)
+			this.pvWindow.postMessage({
+				type: 'calibration-world-point',
+				index,
+				point
+			}, '*');
 
-  			// Ask PV to show the next marker
-  			if (index < 3) {
-    			this.pvWindow.postMessage({ type: 'calibration-show', index: index + 1 }, '*');
-  			}
+			// Ask PV to show the next step
+			if (index < 7) {
+				this.pvWindow.postMessage({ type: 'calibration-show', index: index + 1 }, '*');
+			}
+
 		});
 	}
 
@@ -75,18 +76,18 @@ export class ViewOptions {
 			);
 
 			this.pvCloseCheckInterval = setInterval(() => {
-  				if (!this.pvWindow || this.pvWindow.closed) {
-    				clearInterval(this.pvCloseCheckInterval);
-    				console.log('Projected View window closed');
+				if (!this.pvWindow || this.pvWindow.closed) {
+					clearInterval(this.pvCloseCheckInterval);
+					console.log('Projected View window closed');
 					this.pvWindow = null;
-					
+
 					// Disable calibrate button if projection view window is closed
 					this.calibrateButton.disabled = true;
-  				}
+				}
 			}, 500);
 
 			// Enable calibrate button
-			this.calibrateButton.disabled = false; 
+			this.calibrateButton.disabled = false;
 		} else {
 			this.pvWindow.focus();
 		}

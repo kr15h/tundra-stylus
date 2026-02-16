@@ -32,11 +32,20 @@ function getMarkerPixels() {
 
 const calib = {
   active: false,
-  showIndex: null,
-  worldPoints: [null, null, null, null],
-  homography: null,
-  done: false
+  showIndex: null, // 0..7
+  projectorWorldPoints: [null, null, null, null], // A-D
+  surfaceWorldPoints: [null, null, null, null],   // E-H
+  homography: null, // H mapping plane-UV -> projector pixels (from A-D)
+  doneProjector: false,
+  doneSurface: false
 };
+
+function applyHomographyToPoint(H, x, y) {
+  const d = H[6] * x + H[7] * y + H[8];
+  const X = (H[0] * x + H[1] * y + H[2]) / d;
+  const Y = (H[3] * x + H[4] * y + H[5]) / d;
+  return { x: X, y: Y };
+}
 
 function resizeCanvasToDisplaySize() {
   const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -108,8 +117,8 @@ function render() {
   resizeCanvasToDisplaySize();
 
   drawBaseline();
-
   drawMarker();
+  drawSurfaceQuadOutline();
 
   if (calib.done) {
     drawCalibrationDone();
@@ -188,7 +197,7 @@ function performCalibration(pointsWorld) {
   lastPayload = {
     type: 'calibration-quad',
     quad
-  };  
+  };
 }
 
 function renderCalibrationQuad(payload) {
@@ -212,6 +221,38 @@ function renderCalibrationQuad(payload) {
   ctx.closePath();
   ctx.stroke();
 }
+
+function drawSurfaceQuadOutline() {
+  if (!calib.doneSurface || !calib.homography) return;
+
+  // Convert EFGH world points -> plane UV -> projector pixels, then draw outline
+  const worldPts = calib.surfaceWorldPoints;
+  const uv = worldQuadToUVQuad(worldPts);
+  if (!uv) return;
+
+  const quadPx = uv.map(p => applyHomographyToPoint(calib.homography, p.u, p.v));
+
+  ctx.save();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+
+  ctx.beginPath();
+  for (let i = 0; i < 4; i++) {
+    const p = quadPx[i];
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // Optional: label
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+  ctx.fillText('Surface quad (EFGH)', 12, 92);
+
+  ctx.restore();
+}
+
 
 function enterFullscreen() {
   const el = document.documentElement;
@@ -249,6 +290,16 @@ function drawMarker() {
   if (!calib.active || calib.done) return;
   if (calib.showIndex === null) return;
 
+  if (calib.showIndex >= 4) {
+    // Don’t draw a target marker for table corners; just show text.
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+    ctx.fillText(`Surface corners ${calib.showIndex - 3} / 4 (E-H)`, 12, 70);
+    ctx.restore();
+    return;
+  }
+
   const rect = canvas.getBoundingClientRect();
   const w = rect.width;
   const h = rect.height;
@@ -277,7 +328,12 @@ function drawMarker() {
 
   ctx.fillStyle = '#fff';
   ctx.font = '16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
-  ctx.fillText(`Touch point ${calib.showIndex + 1} / 4`, 12, 70);
+
+  if (calib.showIndex <= 3) {
+    ctx.fillText(`Projector calibration ${calib.showIndex + 1} / 4 (A-D)`, 12, 70);
+  } else {
+    ctx.fillText(`Surface corners ${calib.showIndex - 3} / 4 (E-H)`, 12, 70);
+  }
 
   ctx.restore();
 }
@@ -354,10 +410,14 @@ window.addEventListener('message', (event) => {
 
   if (data.type === 'calibration-start') {
     calib.active = true;
-    calib.done = false;
     calib.showIndex = null;
-    calib.worldPoints = [null, null, null, null];
+
+    calib.projectorWorldPoints = [null, null, null, null];
+    calib.surfaceWorldPoints = [null, null, null, null];
+
     calib.homography = null;
+    calib.doneProjector = false;
+    calib.doneSurface = false;
     return;
   }
 
@@ -369,22 +429,37 @@ window.addEventListener('message', (event) => {
 
   if (data.type === 'calibration-world-point') {
     const i = Number(data.index);
+
+    // A-D (0..3)
     if (i >= 0 && i < 4) {
-      calib.worldPoints[i] = toVec3(data.point); // you already have toVec3() :contentReference[oaicite:5]{index=5}
+      calib.projectorWorldPoints[i] = toVec3(data.point);
+
+      if (calib.projectorWorldPoints.every(p => p) && !calib.doneProjector) {
+        calib.homography = computeHomographyFromWorldToScreen(calib.projectorWorldPoints);
+        calib.doneProjector = true;
+
+        window.opener?.postMessage({
+          type: 'calibration-finished',
+          homography: calib.homography
+        }, '*');
+      }
+      return;
     }
 
-    if (calib.worldPoints.every(p => p)) {
-      // Next step: compute homography here and mark done
-      calib.homography = computeHomographyFromWorldToScreen(calib.worldPoints);
-      calib.done = true;
-      calib.active = false;
+    // E-H (4..7)
+    if (i >= 4 && i < 8) {
+      calib.surfaceWorldPoints[i - 4] = toVec3(data.point);
 
-      // Optional: tell host we’re done
-      window.opener?.postMessage({
-        type: 'calibration-finished',
-        homography: calib.homography
-      }, '*');
+      if (calib.surfaceWorldPoints.every(p => p) && !calib.doneSurface) {
+        calib.doneSurface = true;
+
+        window.opener?.postMessage({
+          type: 'surface-finished'
+        }, '*');
+      }
+      return;
     }
+
     return;
   }
 
