@@ -1,10 +1,28 @@
 'use strict';
 import * as THREE from 'three';
+import { toVec3, worldQuadToUVQuad } from './plane-uv.js';
+import { solveHomography4 } from './homography.js';
 
 const canvas = document.getElementById('pv-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 
 let lastPayload = null;
+
+const markerUV = [
+  { u: 0.38, v: 0.38 },
+  { u: 0.62, v: 0.38 },
+  { u: 0.62, v: 0.62 },
+  { u: 0.38, v: 0.62 }
+];
+
+const calib = {
+  active: false,
+  showIndex: null,
+  worldPoints: [null, null, null, null],
+  homography: null,
+  done: false
+};
+
 
 function resizeCanvasToDisplaySize() {
   const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -73,6 +91,12 @@ function render() {
 
   drawBaseline();
 
+  drawMarker();
+
+  if (calib.done) {
+    drawCalibrationDone();
+  }
+
   if (lastPayload?.type === 'primitives') {
     drawPrimitives(lastPayload);
   }
@@ -95,6 +119,7 @@ function toPoint2(pt) {
   return null;
 }
 
+/*
 function toVec3(pt) {
   // Accept arrays [x,y,z] or objects {x,y,z}
   if (Array.isArray(pt) && pt.length >= 3) {
@@ -105,6 +130,7 @@ function toVec3(pt) {
   }
   return null;
 }
+*/
 
 function performCalibration(pointsWorld) {
   if (!Array.isArray(pointsWorld) || pointsWorld.length < 4) return;
@@ -201,6 +227,83 @@ function hideFullscreenButton() {
   }
 }
 
+function drawMarker() {
+  if (!calib.active || calib.done) return;
+  if (calib.showIndex === null) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  const t = markerUV[calib.showIndex];
+  const x = t.u * w;
+  const y = t.v * h;
+
+  ctx.save();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 4;
+
+  ctx.beginPath();
+  ctx.arc(x, y, 18, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x - 28, y);
+  ctx.lineTo(x + 28, y);
+  ctx.moveTo(x, y - 28);
+  ctx.lineTo(x, y + 28);
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+  ctx.fillText(`Touch point ${calib.showIndex + 1} / 4`, 12, 70);
+
+  ctx.restore();
+}
+
+function drawCalibrationDone() {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = '#00ff66';
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(10, 10, w - 20, h - 20);
+
+  ctx.fillStyle = '#000';
+  ctx.font = '18px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+  ctx.fillText('Calibration complete', 12, 34);
+  ctx.restore();
+}
+
+function computeHomographyFromWorldToScreen(worldPoints) {
+  // 1) world -> plane UV (2D)
+  const uv = worldQuadToUVQuad(worldPoints);
+  if (!uv) return null;
+
+  const src = uv.map(p => ({ x: p.u, y: p.v }));
+
+  // 2) marker UV -> pixel XY in this window
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  const dst = markerUV.map(t => ({
+    x: t.u * w,
+    y: t.v * h
+  }));
+
+  // 3) solve homography
+  return solveHomography4(src, dst);
+}
+ 
+
 document.addEventListener('fullscreenchange', () => {
   if (!isFullscreen()) {
     showFullscreenButton();
@@ -226,18 +329,50 @@ window.addEventListener('message', (event) => {
   const data = event.data;
   if (!data || typeof data !== 'object') return;
 
-  lastPayload = data;
-
   if (data.type === 'ping') {
     window.opener?.postMessage({ type: 'pong' }, '*');
     return;
   }
 
-  if (data.type === 'calibration') {
-    performCalibration(data.points);
+  if (data.type === 'calibration-start') {
+    calib.active = true;
+    calib.done = false;
+    calib.showIndex = null;
+    calib.worldPoints = [null, null, null, null];
+    calib.homography = null;
     return;
   }
+
+  if (data.type === 'calibration-show') {
+    calib.active = true;
+    calib.showIndex = Number(data.index);
+    return;
+  }
+
+  if (data.type === 'calibration-world-point') {
+    const i = Number(data.index);
+    if (i >= 0 && i < 4) {
+      calib.worldPoints[i] = toVec3(data.point); // you already have toVec3() :contentReference[oaicite:5]{index=5}
+    }
+
+    if (calib.worldPoints.every(p => p)) {
+      // Next step: compute homography here and mark done
+      calib.homography = computeHomographyFromWorldToScreen(calib.worldPoints);
+      calib.done = true;
+      calib.active = false;
+
+      // Optional: tell host we’re done
+      window.opener?.postMessage({
+        type: 'calibration-finished',
+        homography: calib.homography
+      }, '*');
+    }
+    return;
+  }
+
+  lastPayload = data;
 });
+
 
 if (window.opener) {
   window.opener.postMessage({ type: 'projected-view-ready' }, '*');

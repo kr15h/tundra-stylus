@@ -78,18 +78,23 @@ export class CalibrateTool extends EventTarget {
             this.pointA = new THREE.Vector3();
 			this.pointA.copy( position );
 			this.addPoint( this.pointA );
+            this.emitPointEvent(0, this.pointA);
         } else if ( !this.pointB && !this.pointC && !this.pointD ) {
             this.pointB = new THREE.Vector3();
 			this.pointB.copy( position );
 			this.addPoint( this.pointB );
+            this.emitPointEvent(1, this.pointB);
         } else if ( !this.pointC && !this.pointD ) {
 			this.pointC = new THREE.Vector3();
 			this.pointC.copy( position );
 			this.addPoint( this.pointC );
+            this.emitPointEvent(2, this.pointC);
 		} else if ( !this.pointD ) {
 			this.pointD = new THREE.Vector3();
 			this.pointD.copy( position );
 			this.addPoint( this.pointD );
+            this.emitPointEvent(3, this.pointD);
+
 			this.addLines();
             this.emitEvent();
 		} else {
@@ -163,6 +168,14 @@ export class CalibrateTool extends EventTarget {
         this.dispatchEvent(
             new CustomEvent("calibrationComplete", {
                 detail: points
+            })
+        );
+    }
+
+    emitPointEvent(index, point) {
+        this.dispatchEvent(
+            new CustomEvent('calibrationPoint', {
+                detail: { index, point }
             })
         );
     }

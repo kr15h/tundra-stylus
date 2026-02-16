@@ -24,6 +24,13 @@ export class ViewOptions {
 		for (const button of toolButtons) {
 			if (button.textContent == 'Calibrate') {
 				this.calibrateButton = button;
+
+				this.calibrateButton.addEventListener('click', () => {
+  					if (!this.pvWindow) return;
+  				
+					this.pvWindow.postMessage({ type: 'calibration-start' }, '*');
+  					this.pvWindow.postMessage({ type: 'calibration-show', index: 0 }, '*');
+				});
 			}
 		} 
 
@@ -40,6 +47,23 @@ export class ViewOptions {
 			}
 		});
 
+		this.calibrateTool.addEventListener('calibrationPoint', (e) => {
+  			if (!this.pvWindow) return;
+
+  			const { index, point } = e.detail;
+
+  			// Send the world-space point (PV will use it)
+  			this.pvWindow.postMessage({
+    			type: 'calibration-world-point',
+    			index,
+    			point
+  			}, '*');
+
+  			// Ask PV to show the next marker
+  			if (index < 3) {
+    			this.pvWindow.postMessage({ type: 'calibration-show', index: index + 1 }, '*');
+  			}
+		});
 	}
 
 	openProjectedView() {
