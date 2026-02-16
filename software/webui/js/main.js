@@ -41,7 +41,7 @@ const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool 
 const stylusWaitingModal = new Modal_StylusWaiting('modal_stylus_waiting');
 
 // Set up view options
-const viewOpts = new ViewOptions();
+const viewOpts = new ViewOptions(Tools.CALIBRATE); 
 
 // FPS Control Variables
 const clock = new THREE.Clock();

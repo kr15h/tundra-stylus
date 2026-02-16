@@ -1,6 +1,10 @@
+import { Tools } from 'tools/manager.js';	
+
 export class ViewOptions {
-	constructor() {
+	constructor(calibrateTool) {
 		this.viewOptionsElement = document.getElementById('view_options');
+		this.calibrateTool = calibrateTool; // Forwards events from there to Projected View
+		// Thoughts: maybe here it is where storing window in global state makes sense?
 		this.pvWindow = null; // pv - Projected View
 		this.pvCloseCheckInterval = null;
 		this.calibrateButton = null;
@@ -22,6 +26,11 @@ export class ViewOptions {
 				this.calibrateButton = button;
 			}
 		} 
+
+		this.calibrateTool.addEventListener('calibrationComplete', (e) => {
+  			const fourPoints = e.detail;
+  			console.log("Got 4 points:", fourPoints);
+		});
 
 	}
 

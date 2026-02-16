@@ -3,9 +3,10 @@ import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 
-export class CalibrateTool {
+export class CalibrateTool extends EventTarget {
 	constructor( workspace ) {
-		
+		super();
+
         // Points for homography mapping
         this.pointA = null;
 		this.pointB = null;
@@ -47,7 +48,6 @@ export class CalibrateTool {
 		});
 
 		this.calibrateGroup.clear();
-		this.removeLabel();
 		
         this.pointA = null;
 		this.pointB = null;
@@ -91,6 +91,7 @@ export class CalibrateTool {
 			this.pointD.copy( position );
 			this.addPoint( this.pointD );
 			this.addLines();
+            this.emitEvent();
 		} else {
 			this.pointA = null;
 			this.pointB = null;
@@ -156,5 +157,14 @@ export class CalibrateTool {
 		const fatLine = new Line2(lineGeometry, lineMaterial);
 		this.calibrateGroup.add(fatLine);
 	}
+
+    emitEvent() {
+        const points = [this.pointA, this.pointB, this.pointC, this.pointD];
+        this.dispatchEvent(
+            new CustomEvent("calibrationComplete", {
+                detail: points
+            })
+        );
+    }
 
 }
