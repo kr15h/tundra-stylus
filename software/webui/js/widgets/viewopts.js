@@ -16,7 +16,7 @@ export class ViewOptions {
 	openInWindow() {
 		if (!this.window) {
 			this.window = window.open(
-				'projected-view.html',
+				'views/projected/index.html',
 				'Projected View',
 				'width=600,height=400'
 			);
