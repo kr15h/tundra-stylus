@@ -8,12 +8,27 @@ const ctx = canvas.getContext('2d', { alpha: false });
 
 let lastPayload = null;
 
-const markerUV = [
-  { u: 0.38, v: 0.38 },
-  { u: 0.62, v: 0.38 },
-  { u: 0.62, v: 0.62 },
-  { u: 0.38, v: 0.62 }
-];
+function getMarkerPixels() {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  // spread: how far from center the markers should be (in pixels)
+  // Using min(w,h) makes it stable across aspect ratios.
+  const spread = Math.min(w, h) * 0.18; // tweak: 0.12 (closer) ... 0.22 (wider)
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+
+  const dx = spread * 0.5;
+  const dy = spread * 0.5;
+
+  return [
+    { x: cx - dx, y: cy - dy }, // top-left of the inner quad
+    { x: cx + dx, y: cy - dy }, // top-right
+    { x: cx + dx, y: cy + dy }, // bottom-right
+    { x: cx - dx, y: cy + dy }  // bottom-left
+  ];
+}
 
 const calib = {
   active: false,
@@ -23,18 +38,21 @@ const calib = {
   done: false
 };
 
-
 function resizeCanvasToDisplaySize() {
   const dpr = Math.max(1, window.devicePixelRatio || 1);
-  const rect = canvas.getBoundingClientRect();
-  const w = Math.round(rect.width * dpr);
-  const h = Math.round(rect.height * dpr);
 
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
+  // Use *CSS pixel* size from layout
+  const rect = canvas.getBoundingClientRect();
+  const displayWidth = Math.round(rect.width * dpr);
+  const displayHeight = Math.round(rect.height * dpr);
+
+  // Resize drawing buffer to match display size
+  if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
   }
 
+  // Draw in CSS pixels (so you can use rect.width/height in your math)
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
@@ -170,7 +188,7 @@ function performCalibration(pointsWorld) {
   lastPayload = {
     type: 'calibration-quad',
     quad
-  };
+  };  
 }
 
 function renderCalibrationQuad(payload) {
@@ -235,9 +253,12 @@ function drawMarker() {
   const w = rect.width;
   const h = rect.height;
 
-  const t = markerUV[calib.showIndex];
-  const x = t.u * w;
-  const y = t.v * h;
+  const pts = getMarkerPixels();
+  const p = pts[calib.showIndex];
+  if (!p) return;
+
+  const x = p.x;
+  const y = p.y;
 
   ctx.save();
   ctx.strokeStyle = '#fff';
@@ -283,32 +304,25 @@ function drawCalibrationDone() {
 }
 
 function computeHomographyFromWorldToScreen(worldPoints) {
-  // 1) world -> plane UV (2D)
   const uv = worldQuadToUVQuad(worldPoints);
   if (!uv) return null;
 
   const src = uv.map(p => ({ x: p.u, y: p.v }));
 
-  // 2) marker UV -> pixel XY in this window
-  const rect = canvas.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
+  const dstPts = getMarkerPixels();
+  const dst = dstPts.map(p => ({ x: p.x, y: p.y }));
 
-  const dst = markerUV.map(t => ({
-    x: t.u * w,
-    y: t.v * h
-  }));
-
-  // 3) solve homography
   return solveHomography4(src, dst);
 }
- 
+
 
 document.addEventListener('fullscreenchange', () => {
   if (!isFullscreen()) {
     showFullscreenButton();
+    resizeCanvasToDisplaySize();
   } else {
     hideFullscreenButton();
+    resizeCanvasToDisplaySize();
   }
 });
 
@@ -318,6 +332,10 @@ window.addEventListener('keydown', (e) => {
   } else {
     exitFullscreen();
   }
+});
+
+window.addEventListener('resize', () => {
+  resizeCanvasToDisplaySize();
 });
 
 const fsButton = document.getElementById("button_fullscreen");
@@ -377,7 +395,5 @@ window.addEventListener('message', (event) => {
 if (window.opener) {
   window.opener.postMessage({ type: 'projected-view-ready' }, '*');
 }
-
-
 
 render();
