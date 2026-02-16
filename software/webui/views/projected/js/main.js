@@ -169,6 +169,59 @@ function renderCalibrationQuad(payload) {
   ctx.stroke();
 }
 
+function enterFullscreen() {
+  const el = document.documentElement;
+
+  if (el.requestFullscreen) {
+    el.requestFullscreen();
+  }
+}
+
+function exitFullscreen() {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  }
+}
+
+function isFullscreen() {
+  return document.fullscreenElement !== null;
+}
+
+function showFullscreenButton() {
+  const fsButton = document.getElementById("button_fullscreen");
+  if (fsButton.classList.contains('hidden')) {
+    fsButton.classList.remove('hidden');
+  }
+}
+
+function hideFullscreenButton() {
+  const fsButton = document.getElementById("button_fullscreen");
+  if (!fsButton.classList.contains('hidden')) {
+    fsButton.classList.add('hidden');
+  }
+}
+
+document.addEventListener('fullscreenchange', () => {
+  if (!isFullscreen()) {
+    showFullscreenButton();
+  } else {
+    hideFullscreenButton();
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'f' && !isFullscreen()) {
+    enterFullscreen();
+  } else {
+    exitFullscreen();
+  }
+});
+
+const fsButton = document.getElementById("button_fullscreen");
+fsButton.addEventListener('click', (e) => {
+  enterFullscreen();
+});
+
 window.addEventListener('message', (event) => {
   const data = event.data;
   if (!data || typeof data !== 'object') return;
@@ -189,5 +242,7 @@ window.addEventListener('message', (event) => {
 if (window.opener) {
   window.opener.postMessage({ type: 'projected-view-ready' }, '*');
 }
+
+
 
 render();
