@@ -13,6 +13,9 @@ import { StatusBar_Init } from 'status';
 // Tool manager with tools included
 import { ToolManager, Tools } from 'tools/manager.js'; 
 
+// View options for opening UI in new window for projection mapping
+import { ViewOptions } from './widgets/viewopts.js';
+
 // UI Widgets
 import { ToolBar } from 'widgets/toolbar.js';
 import { Modal_StylusWaiting } from 'modals/Modal_StylusWaiting.js';
@@ -36,6 +39,9 @@ workspace.name = 'Workspace';
 const toolMan = new ToolManager(workspace); // Manages tool activation/deactivation
 const toolBar = new ToolBar(toolMan); // Connects visible user inteface to tool man
 const stylusWaitingModal = new Modal_StylusWaiting('modal_stylus_waiting');
+
+// Set up view options
+const viewOpts = new ViewOptions();
 
 // FPS Control Variables
 const clock = new THREE.Clock();
