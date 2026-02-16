@@ -19,6 +19,12 @@ export class ToolBar {
 					this.toolManager.selectTool(Tools.FREEHAND);
 					this.selectToolButton(button.textContent);
 				});
+			} else if (button.textContent == 'Calibrate' ) {
+				button.addEventListener('click', (e) => {
+					this.deselectAllToolButtons();
+					this.toolManager.selectTool(Tools.CALIBRATE);
+					this.selectToolButton(button.textContent);
+				});
 			} else if (button.textContent == 'Clear') {
 				button.addEventListener('click', (e) => {
 					this.toolManager.clear();

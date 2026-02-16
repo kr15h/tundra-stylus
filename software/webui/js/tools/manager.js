@@ -1,9 +1,11 @@
 import { RulerTool } from 'tools/ruler.js'; 
 import { FreehandTool } from 'tools/freehand.js'; 
+import { CalibrateTool } from 'tools/calibrate.js'; 
 
 export const Tools = {
 	RULER: null,
-	FREEHAND: null
+	FREEHAND: null,
+	CALIBRATE: null
 }
 
 export class ToolManager {
@@ -14,6 +16,7 @@ export class ToolManager {
 		// Init tools
 		Tools.RULER = new RulerTool(this.workspace);
 		Tools.FREEHAND = new FreehandTool(this.workspace);
+		Tools.CALIBRATE = new CalibrateTool(this.workspace);
 	}
 
 	selectTool(tool) {

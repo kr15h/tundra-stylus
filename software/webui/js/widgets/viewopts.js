@@ -11,13 +11,17 @@ export class ViewOptions {
 				button.addEventListener('click', (e) => {
 					this.openProjectedView();
 				});
-			} else if (button.textContent == "Calibrate") {
-				this.calibrateButton = button;
-				this.calibrateButton.addEventListener('click', () => {
-					this.beginPvCalibration();
-				});
-			}		
+			}
 		}
+
+		// Get the Calibrate tool button
+		this.toolBarElement = document.getElementById('widget_tools');
+		const toolButtons = this.toolBarElement.getElementsByTagName('button');
+		for (const button of toolButtons) {
+			if (button.textContent == 'Calibrate') {
+				this.calibrateButton = button;
+			}
+		} 
 
 	}
 
@@ -34,26 +38,17 @@ export class ViewOptions {
     				clearInterval(this.pvCloseCheckInterval);
     				console.log('Projected View window closed');
 					this.pvWindow = null;
-					this.calibrateButton.classList.add('hidden');
+					
+					// Disable calibrate button if projection view window is closed
+					this.calibrateButton.disabled = true;
   				}
 			}, 500);
 
-			// Show calibrate button
-			if (this.calibrateButton.classList.contains('hidden')) {
-				this.calibrateButton.classList.remove('hidden');
-			} 
+			// Enable calibrate button
+			this.calibrateButton.disabled = false; 
 		} else {
 			this.pvWindow.focus();
 		}
-	}
-
-	beginPvCalibration() {
-		if (!this.pvWindow) {
-			console.log('Projection View not open');
-			return;
-		}
-
-		console.log('Begin Projected View Calibration');
 	}
 
 }
