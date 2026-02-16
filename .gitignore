@@ -1,3 +1,5 @@
 *.FCBak
 *-backups
 *.lck
+design/export
+design/3dprint
