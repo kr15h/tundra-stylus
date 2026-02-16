@@ -33,12 +33,30 @@ def get_active_trackers(vr_system):
 	global button_state
 	tracker_data = []
 	
+	if verbose:
+		print("Tracked device class map")
+		print(openvr.TrackedDeviceClass_GenericTracker, "GenericTracker")
+		print(openvr.TrackedDeviceClass_Controller, "Controller")
+
 	for device_index in range(openvr.k_unMaxTrackedDeviceCount):
 		
 		# Check if the device is tracked
 		if vr_system.isTrackedDeviceConnected(device_index):
 			device_class = vr_system.getTrackedDeviceClass(device_index)
-			if device_class == openvr.TrackedDeviceClass_GenericTracker or openvr.TrackedDeviceClass_Controller:
+
+			# device_class possible value mapping
+			# 2: Controller
+			# 3: GenericTracker
+			# Funny, but first time we get device_class, it is GenericTracker.
+			# Once we attempt to get button states, it switches to Controller.
+			if verbose:
+				print("device_class:", device_class)
+				if(device_class == openvr.TrackedDeviceClass_Controller):
+					print("Controller")
+				if(device_class == openvr.TrackedDeviceClass_GenericTracker):
+					print("GenericTracker")
+
+			if device_class == openvr.TrackedDeviceClass_GenericTracker or device_class == openvr.TrackedDeviceClass_Controller:
 				
 				# Get device pose
 				# TrackingUniverseStanding: absolute coordinate system
