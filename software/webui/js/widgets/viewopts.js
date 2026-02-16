@@ -30,6 +30,14 @@ export class ViewOptions {
 		this.calibrateTool.addEventListener('calibrationComplete', (e) => {
   			const fourPoints = e.detail;
   			console.log("Got 4 points:", fourPoints);
+
+			// Forward four points to Projected View window if it exists
+			if (this.pvWindow) {
+				this.pvWindow.postMessage({
+  					type: 'calibration',
+  					points: fourPoints
+				}, '*');
+			}
 		});
 
 	}
