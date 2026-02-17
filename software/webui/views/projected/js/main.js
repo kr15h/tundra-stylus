@@ -1,10 +1,39 @@
 'use strict';
+
 import * as THREE from 'three';
 import { toVec3, worldQuadToUVQuad } from './plane-uv.js';
 import { solveHomography4 } from './homography.js';
+import { computeContentUvToProjectorHomography, surfaceWorldQuadToProjectorPixels } from './surface-fit.js';
+import { buildPlaneBasis, worldToUV } from './plane-uv.js';
 
 const canvas = document.getElementById('pv-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
+
+const sourceCanvas = document.createElement('canvas');
+const sourceCtx = sourceCanvas.getContext('2d', { alpha: false });
+
+function resizeSourceCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  sourceCanvas.width = Math.max(2, Math.round(rect.width));
+  sourceCanvas.height = Math.max(2, Math.round(rect.height));
+}
+
+function drawSurfaceFillToSource() {
+  const w = sourceCanvas.width;
+  const h = sourceCanvas.height;
+
+  sourceCtx.fillStyle = '#000';
+  sourceCtx.fillRect(0, 0, w, h);
+
+  // Big obvious fill
+  sourceCtx.fillStyle = '#ffffff';
+  sourceCtx.fillRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
+
+  // Border
+  sourceCtx.strokeStyle = '#000';
+  sourceCtx.lineWidth = 10;
+  sourceCtx.strokeRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
+}
 
 let lastPayload = null;
 
@@ -36,6 +65,8 @@ const calib = {
   projectorWorldPoints: [null, null, null, null], // A-D
   surfaceWorldPoints: [null, null, null, null],   // E-H
   homography: null, // H mapping plane-UV -> projector pixels (from A-D)
+  contentHomography: null,  // H_contentUvToProjPx (from E-H + homography)
+  planeBasis: null,
   doneProjector: false,
   doneSurface: false
 };
@@ -92,7 +123,7 @@ function drawPrimitives(payload) {
   const lines = payload?.lines;
   if (!Array.isArray(lines)) return;
 
-  ctx.strokeStyle = '#fff';
+  ctx.strokeStyle = '#ff0000';
   ctx.lineWidth = 2;
 
   for (const line of lines) {
@@ -120,7 +151,7 @@ function render() {
   drawMarker();
   drawSurfaceQuadOutline();
 
-  if (calib.done) {
+  if (calib.doneSurface) {
     drawCalibrationDone();
   }
 
@@ -133,6 +164,13 @@ function render() {
   }
 
   requestAnimationFrame(render);
+
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+
+  ctx.strokeStyle = '#f0f';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, w - 4, h - 4);
 }
 
 function toPoint2(pt) {
@@ -223,13 +261,9 @@ function renderCalibrationQuad(payload) {
 }
 
 function drawSurfaceQuadOutline() {
-  if (!calib.doneSurface || !calib.homography) return;
+  if (!calib.doneSurface || !calib.homography || !calib.planeBasis) return;
 
-  // Convert EFGH world points -> plane UV -> projector pixels, then draw outline
-  const worldPts = calib.surfaceWorldPoints;
-  const uv = worldQuadToUVQuad(worldPts);
-  if (!uv) return;
-
+  const uv = calib.surfaceWorldPoints.map(p => worldToUV(p, calib.planeBasis));
   const quadPx = uv.map(p => applyHomographyToPoint(calib.homography, p.u, p.v));
 
   ctx.save();
@@ -245,14 +279,12 @@ function drawSurfaceQuadOutline() {
   ctx.closePath();
   ctx.stroke();
 
-  // Optional: label
   ctx.fillStyle = '#fff';
   ctx.font = '16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
   ctx.fillText('Surface quad (EFGH)', 12, 92);
 
   ctx.restore();
 }
-
 
 function enterFullscreen() {
   const el = document.documentElement;
@@ -359,18 +391,56 @@ function drawCalibrationDone() {
   ctx.restore();
 }
 
-function computeHomographyFromWorldToScreen(worldPoints) {
-  const uv = worldQuadToUVQuad(worldPoints);
-  if (!uv) return null;
+function computeHomographyFromBasisToScreen(basis) {
+  // A-D in UV space are exactly the unit square in this basis:
+  const src = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 0, y: 1 }
+  ];
 
-  const src = uv.map(p => ({ x: p.u, y: p.v }));
-
-  const dstPts = getMarkerPixels();
+  // Destination are the marker pixels you displayed for A-D (centered set)
+  const dstPts = getMarkerPixels(); // your centered marker layout
   const dst = dstPts.map(p => ({ x: p.x, y: p.y }));
 
   return solveHomography4(src, dst);
 }
 
+function pixelsHomographyToUvHomography(Hpx) {
+  // Convert mapping from source UV -> pixel to source UV -> screen UV by scaling pixels by 1/width, 1/height.
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+
+  // Left-multiply by normalization matrix N:
+  // [1/w  0   0]
+  // [ 0  1/h  0]
+  // [ 0   0   1]
+  const N = [
+    1 / w, 0, 0,
+    0, 1 / h, 0,
+    0, 0, 1
+  ];
+
+  return mul3x3(N, Hpx);
+}
+
+function mul3x3(A, B) {
+  const out = new Array(9);
+  out[0] = A[0]*B[0] + A[1]*B[3] + A[2]*B[6];
+  out[1] = A[0]*B[1] + A[1]*B[4] + A[2]*B[7];
+  out[2] = A[0]*B[2] + A[1]*B[5] + A[2]*B[8];
+
+  out[3] = A[3]*B[0] + A[4]*B[3] + A[5]*B[6];
+  out[4] = A[3]*B[1] + A[4]*B[4] + A[5]*B[7];
+  out[5] = A[3]*B[2] + A[4]*B[5] + A[5]*B[8];
+
+  out[6] = A[6]*B[0] + A[7]*B[3] + A[8]*B[6];
+  out[7] = A[6]*B[1] + A[7]*B[4] + A[8]*B[7];
+  out[8] = A[6]*B[2] + A[7]*B[5] + A[8]*B[8];
+  return out;
+}
 
 document.addEventListener('fullscreenchange', () => {
   if (!isFullscreen()) {
@@ -383,11 +453,8 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'f' && !isFullscreen()) {
-    enterFullscreen();
-  } else {
-    exitFullscreen();
-  }
+  if (e.key === 'f' && !isFullscreen()) enterFullscreen();
+  if (e.key === 'q' && isFullscreen()) exitFullscreen();
 });
 
 window.addEventListener('resize', () => {
@@ -416,6 +483,7 @@ window.addEventListener('message', (event) => {
     calib.surfaceWorldPoints = [null, null, null, null];
 
     calib.homography = null;
+    calib.contentHomography = null;
     calib.doneProjector = false;
     calib.doneSurface = false;
     return;
@@ -430,12 +498,17 @@ window.addEventListener('message', (event) => {
   if (data.type === 'calibration-world-point') {
     const i = Number(data.index);
 
-    // A-D (0..3)
+    // A-D (0..3): store points
     if (i >= 0 && i < 4) {
       calib.projectorWorldPoints[i] = toVec3(data.point);
 
+      // Once A-D are all present, compute plane basis + projector homography ONCE
       if (calib.projectorWorldPoints.every(p => p) && !calib.doneProjector) {
-        calib.homography = computeHomographyFromWorldToScreen(calib.projectorWorldPoints);
+        calib.planeBasis = buildPlaneBasis(calib.projectorWorldPoints);
+        if (!calib.planeBasis) return;
+
+        // This homography maps plane-UV (defined by A-D basis) -> projector pixels (marker quad)
+        calib.homography = computeHomographyFromBasisToScreen(calib.planeBasis);
         calib.doneProjector = true;
 
         window.opener?.postMessage({
@@ -443,29 +516,43 @@ window.addEventListener('message', (event) => {
           homography: calib.homography
         }, '*');
       }
+
       return;
     }
 
-    // E-H (4..7)
+    // E-H (4..7): store points
     if (i >= 4 && i < 8) {
       calib.surfaceWorldPoints[i - 4] = toVec3(data.point);
 
       if (calib.surfaceWorldPoints.every(p => p) && !calib.doneSurface) {
         calib.doneSurface = true;
 
+        // IMPORTANT: use the SAME plane basis from A-D
+        const uv = calib.surfaceWorldPoints.map(p => worldToUV(p, calib.planeBasis));
+        const dst = uv.map(p => applyHomographyToPoint(calib.homography, p.u, p.v));
+
+        // Content unit square -> surface quad pixels
+        const srcUnit = [
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+          { x: 1, y: 1 },
+          { x: 0, y: 1 }
+        ];
+
+        calib.contentHomography = solveHomography4(srcUnit, dst);
+
         window.opener?.postMessage({
-          type: 'surface-finished'
+          type: 'surface-fit-finished',
+          contentHomography: calib.contentHomography
         }, '*');
       }
+
       return;
     }
 
     return;
   }
-
-  lastPayload = data;
 });
-
 
 if (window.opener) {
   window.opener.postMessage({ type: 'projected-view-ready' }, '*');

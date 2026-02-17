@@ -13,8 +13,6 @@ export function toVec3(pt) {
 // Builds a plane basis from 4 corners assumed in rectangle order:
 // p0 (origin), p1 (+u), p2 (diag), p3 (+v)
 export function buildPlaneBasis(worldPts) {
-  if (!Array.isArray(worldPts) || worldPts.length < 4) return null;
-
   const p0 = worldPts[0];
   const p1 = worldPts[1];
   const p3 = worldPts[3];
