@@ -1,5 +1,7 @@
 # Tundra Stylus
 
+> This project has migrated. See [Lighthouse Stylus](https://gitlab.com/kriwkrow/lighthouse-stylus).
+
 Tundra Tracker stylus baseplate for 3D positional tracking. This repository contains design files and test application source code. It currently works with [SteamVR](https://store.steampowered.com/app/250820/SteamVR/), but [libsurvive](https://github.com/cntools/libsurvive) support is on its way.
 
 https://github.com/user-attachments/assets/fd64adfa-e3c0-4b6a-a956-ca7f262a2909
